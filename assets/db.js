@@ -1,0 +1,83 @@
+/* Data layer — Supabase reads/writes (RLS-scoped). Falls back to CONTENT mock if a read fails,
+ * so the UI still renders during setup. Plan/tasks are per-day UI state kept in localStorage.
+ */
+window.DB = (function () {
+  const C = window.CONTENT;
+  const dayKey = (k) => "tc_" + k + "_" + new Date().toISOString().slice(0, 10);
+
+  async function profile() {
+    const { data } = await SB.from("users").select("*").maybeSingle();
+    return data;
+  }
+  function hasAccess(u) {
+    if (!u) return false;
+    if (u.subscription_status !== "active" && u.subscription_status !== "trialing") return false;
+    if (u.current_period_end && new Date(u.current_period_end) < new Date()) return false;
+    return true;
+  }
+
+  async function loadContent() {
+    try {
+      const [{ data: sess }, { data: media }] = await Promise.all([
+        SB.from("sessions").select("*").eq("is_published", true).order("sort"),
+        SB.from("media_sessions").select("*").eq("is_published", true).order("sort"),
+      ]);
+      const workouts = (sess || []).map(s => ({
+        id: s.id, cat: s.category, title: s.title, level: s.level,
+        min: s.duration_min, focus: s.focus, seed: s.thumb_seed, locked: s.unlock_rule,
+      }));
+      const categories = [...new Set(workouts.map(w => w.cat))];
+      const stress = {};
+      (media || []).forEach(m => { (stress[m.kind] = stress[m.kind] || []).push({ id: m.id, title: m.title, min: m.duration_min, seed: m.thumb_seed }); });
+      // derive a simple daily plan from the first chair/standing sessions
+      const plan = workouts.slice(0, 6).map(w => ({ id: "plan_" + w.id, title: w.title, level: w.level, min: w.min, seed: w.seed }));
+      if (!workouts.length) throw new Error("empty");
+      return { workouts, categories, stress, plan };
+    } catch (e) {
+      return { workouts: C.workouts, categories: C.categories, stress: C.stress,
+        plan: C.planToday.map(p => ({ ...p })) };
+    }
+  }
+
+  async function loadUserState() {
+    const state = { completed: {}, favorites: {}, latest: {}, history: {} };
+    try {
+      const [{ data: prog }, { data: favs }, { data: checks }] = await Promise.all([
+        SB.from("user_session_progress").select("session_id"),
+        SB.from("favorites").select("item_type,item_id"),
+        SB.from("progress_checkins").select("metric,value,text_value,recorded_at").order("recorded_at", { ascending: false }),
+      ]);
+      (prog || []).forEach(p => state.completed[p.session_id] = true);
+      (favs || []).forEach(f => state.favorites[f.item_id] = true);
+      (checks || []).forEach(c => {
+        (state.history[c.metric] = state.history[c.metric] || []).push({ value: c.text_value ?? c.value, at: c.recorded_at });
+        if (state.latest[c.metric] === undefined) state.latest[c.metric] = c.text_value ?? c.value;
+      });
+    } catch (e) { /* leave empty */ }
+    return state;
+  }
+
+  return {
+    profile, hasAccess, loadContent, loadUserState,
+    // mutations
+    async toggleSession(id, on) {
+      if (on) { const u = (await SB.auth.getUser()).data.user; await SB.from("user_session_progress").insert({ user_id: u.id, session_id: id, status: "completed" }); }
+      else await SB.from("user_session_progress").delete().eq("session_id", id);
+    },
+    async toggleFav(id, on, type = "session") {
+      if (on) { const u = (await SB.auth.getUser()).data.user; await SB.from("favorites").insert({ user_id: u.id, item_type: type, item_id: id }); }
+      else await SB.from("favorites").delete().eq("item_id", id);
+    },
+    async addCheckin(metric, value, unit) {
+      const u = (await SB.auth.getUser()).data.user;
+      const numeric = typeof value === "number" || (!isNaN(parseFloat(value)) && metric !== "mood");
+      await SB.from("progress_checkins").insert({
+        user_id: u.id, metric, unit: unit || null,
+        value: numeric ? parseFloat(value) : null, text_value: numeric ? null : String(value),
+      });
+    },
+    // per-day UI state (tasks + plan checklist)
+    dayGet(k) { try { return JSON.parse(localStorage.getItem(dayKey(k))) || {}; } catch { return {}; } },
+    dayToggle(k, id) { const o = this.dayGet(k); o[id] ? delete o[id] : (o[id] = true); localStorage.setItem(dayKey(k), JSON.stringify(o)); return o; },
+  };
+})();
