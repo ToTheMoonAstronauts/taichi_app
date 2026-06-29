@@ -150,3 +150,30 @@ h1.page{font-size:28px;font-weight:800;margin:0 0 4px}
   .bottomnav a.active{color:var(--primary-dark)}
 }
 @media (max-width:380px){ .track-grid{grid-template-columns:1fr} }
+
+/* ===== Profile / settings ===== */
+.prof-id{display:flex;align-items:center;gap:14px;margin-top:6px}
+.prof-av{width:52px;height:52px;border-radius:50%;background:var(--primary-soft);color:var(--primary-dark);display:grid;place-items:center;font-weight:800;font-size:22px;flex:none}
+.prof-name{font-weight:800;font-size:18px}
+.sec-label{font-size:12px;letter-spacing:1px;color:var(--muted);font-weight:700;margin-bottom:10px}
+.fl{display:block;font-size:13px;font-weight:700;color:var(--muted);margin:12px 0 6px}
+.tin{width:100%;border:2px solid var(--line);border-radius:12px;padding:13px;font-size:16px;outline:none;background:#fff}
+.tin:focus{border-color:var(--primary)}
+.tin:disabled{background:var(--bg);color:var(--muted)}
+.seg{display:flex;background:var(--bg);border-radius:12px;padding:4px;gap:4px}
+.seg button{flex:1;border:none;background:none;padding:11px;border-radius:9px;font-weight:700;color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--primary);color:#fff}
+.listcard{padding:6px 0}
+.lrow{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;text-decoration:none;color:var(--ink);font-weight:600;border-bottom:1px solid var(--line)}
+.lrow:last-child{border-bottom:none}
+.lrow .chev{color:var(--muted)}
+.lrow:hover{background:var(--bg)}
+.logout{background:none;border:none;color:var(--accent);font-weight:700;font-size:16px;cursor:pointer;padding:10px}
+.pill-on{background:#e7f3ea;color:#3f7a52;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;margin-left:6px}
+.pill-off{background:#fbe0e0;color:#b23b3b;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;margin-left:6px}
+.subbox{background:var(--primary-soft);border-radius:12px;padding:16px}
+.subbox.warn{background:#fff5f5}
+.steps-list{list-style:none;margin:8px 0 0;padding:0}
+.steps-list li{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line);font-weight:600}
+.steps-list li:last-child{border-bottom:none}
+.steps-list .sn{width:26px;height:26px;border-radius:50%;background:var(--primary-soft);color:var(--primary-dark);display:grid;place-items:center;font-weight:700;flex:none}

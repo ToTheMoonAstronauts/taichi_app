@@ -76,6 +76,15 @@ window.DB = (function () {
         value: numeric ? parseFloat(value) : null, text_value: numeric ? null : String(value),
       });
     },
+    async updateProfile(fields) {
+      const u = (await SB.auth.getUser()).data.user;
+      await SB.from("users").update(fields).eq("id", u.id);
+    },
+    async setAutoRenew(on) {
+      const u = (await SB.auth.getUser()).data.user;
+      await SB.from("users").update({ cancel_at_period_end: !on }).eq("id", u.id);
+      await SB.from("subscriptions").update({ cancel_at_period_end: !on }).eq("user_id", u.id);
+    },
     // per-day UI state (tasks + plan checklist)
     dayGet(k) { try { return JSON.parse(localStorage.getItem(dayKey(k))) || {}; } catch { return {}; } },
     dayToggle(k, id) { const o = this.dayGet(k); o[id] ? delete o[id] : (o[id] = true); localStorage.setItem(dayKey(k), JSON.stringify(o)); return o; },

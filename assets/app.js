@@ -25,8 +25,9 @@
     if (bn) bn.innerHTML = NAV.filter(n => MOBILE_NAV.includes(n.id)).map(n => `<a href="#/${n.id}" class="${active === n.id ? "active" : ""}"><span class="ic">${n.icon}</span>${n.label}</a>`).join("");
     const name = (PROFILE && (PROFILE.name || PROFILE.email)) || "You";
     const av = document.getElementById("avatar"), em = document.getElementById("acctEmail");
-    if (av) av.textContent = (name[0] || "Y").toUpperCase();
-    if (em) { em.textContent = name; em.style.cursor = "pointer"; em.title = "Sign out"; em.onclick = () => AUTH.signOut(); }
+    const goProfile = () => { location.hash = "#/profile"; };
+    if (av) { av.textContent = (name[0] || "Y").toUpperCase(); av.style.cursor = "pointer"; av.onclick = goProfile; }
+    if (em) { em.textContent = name; em.style.cursor = "pointer"; em.title = "Profile & settings"; em.onclick = goProfile; }
   }
 
   // ---------- Auth / gate ----------
@@ -194,16 +195,113 @@
     view.querySelectorAll(".fav").forEach(f => f.onclick = async (e) => { e.stopPropagation(); delete ST.favorites[f.dataset.id]; await DB.toggleFav(f.dataset.id, false); vFavorites(); });
   }
 
+  // ---------- Profile / settings ----------
+  function vProfile() {
+    const p = PROFILE || {};
+    const units = p.measurement_system || "metric";
+    view.innerHTML = `
+      <h1 class="page">Profile</h1>
+      <div class="prof-id"><span class="prof-av">${esc((p.name||p.email||"Y")[0]).toUpperCase()}</span>
+        <div><div class="prof-name">${esc(p.name||"Your name")}</div><div class="page-sub" style="margin:0">${esc(p.email||"")}</div></div></div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="sec-label">YOUR INFO</div>
+        <label class="fl">Name</label><input id="pf-name" class="tin" value="${esc(p.name||"")}">
+        <label class="fl">Email address</label><input class="tin" value="${esc(p.email||"")}" disabled>
+        <label class="fl">Daily steps goal</label><input id="pf-steps" class="tin" type="number" value="${p.daily_steps_goal||7000}" placeholder="7000">
+        <div style="text-align:right;margin-top:14px"><button class="btn" id="pf-save">Save changes</button></div>
+        <div id="pf-msg" class="page-sub" style="text-align:right;margin-top:8px"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="sec-label">MEASUREMENT SYSTEM</div>
+        <div class="seg"><button data-u="metric" class="${units==='metric'?'on':''}">Metric</button><button data-u="imperial" class="${units==='imperial'?'on':''}">Imperial</button></div>
+      </div>
+
+      <div class="card listcard" style="margin-top:16px">
+        <a class="lrow" href="#/subscription"><span>Manage subscription</span><span class="chev">›</span></a>
+        <a class="lrow" href="#/install"><span>Install the app</span><span class="chev">›</span></a>
+      </div>
+
+      <div class="card listcard" style="margin-top:16px">
+        <div class="sec-label" style="padding:0 4px 6px">HELP &amp; LEGAL</div>
+        <a class="lrow" href="https://taimotion.com" target="_blank"><span>Privacy Policy</span><span class="chev">›</span></a>
+        <a class="lrow" href="https://taimotion.com" target="_blank"><span>Terms of Service</span><span class="chev">›</span></a>
+        <a class="lrow" href="mailto:hello@taimotion.com"><span>Support</span><span class="chev">›</span></a>
+      </div>
+
+      <div style="text-align:center;margin:26px 0"><button class="logout" id="pf-logout">Logout ⎋</button></div>`;
+    // save
+    view.querySelector("#pf-save").onclick = async () => {
+      const name = view.querySelector("#pf-name").value.trim();
+      const steps = parseInt(view.querySelector("#pf-steps").value) || 7000;
+      await DB.updateProfile({ name, daily_steps_goal: steps });
+      PROFILE.name = name; PROFILE.daily_steps_goal = steps;
+      const m = view.querySelector("#pf-msg"); m.style.color = "var(--primary-dark)"; m.textContent = "✓ Saved";
+      renderNav("profile");
+    };
+    view.querySelectorAll(".seg button").forEach(b => b.onclick = async () => {
+      const u = b.dataset.u; view.querySelectorAll(".seg button").forEach(x => x.classList.toggle("on", x === b));
+      await DB.updateProfile({ measurement_system: u }); PROFILE.measurement_system = u;
+    });
+    view.querySelector("#pf-logout").onclick = () => AUTH.signOut();
+  }
+
+  function vManageSub() {
+    const p = PROFILE || {};
+    const planName = ({ "1w": "1-week plan", "4w": "4-week plan", "12w": "12-week plan" }[p.subscription_plan] || "Your plan");
+    const renew = p.current_period_end ? new Date(p.current_period_end).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }) : "—";
+    const off = !!p.cancel_at_period_end;
+    view.innerHTML = `
+      <button class="backlink" onclick="location.hash='#/profile'">‹ Back</button>
+      <h1 class="page">Manage subscription</h1>
+      <div class="card" style="max-width:520px">
+        <div class="sec-label">${planName.toUpperCase()} ${off?'<span class="pill-off">Auto-renew off</span>':'<span class="pill-on">Active</span>'}</div>
+        <div class="order-row"><span>Status</span><span>${esc(p.subscription_status||"—")}</span></div>
+        <div class="order-row"><span>${off?"Access until":"Renews on"}</span><span>${renew}</span></div>
+        <div class="subbox ${off?'warn':''}" style="margin-top:14px">
+          ${off
+            ? `<b>Auto-renew is off — access until ${renew}.</b><p class="page-sub" style="margin:6px 0 0">Your plan won't renew. Turn it back on to keep your progress.</p>
+               <button class="btn block" id="renew-on" style="margin-top:12px">Keep my subscription</button>`
+            : `<b>Need a breather?</b><p class="page-sub" style="margin:6px 0 0">You can turn off auto-renewal anytime. You'll keep access until the end of your billing period.</p>
+               <button class="btn block" id="renew-off" style="margin-top:12px">Turn off auto-renewal</button>`}
+        </div>
+      </div>`;
+    const onBtn = view.querySelector("#renew-on"), offBtn = view.querySelector("#renew-off");
+    if (offBtn) offBtn.onclick = async () => { if (!confirm("Turn off auto-renewal? You'll keep access until "+renew+".")) return; await DB.setAutoRenew(false); PROFILE.cancel_at_period_end = true; vManageSub(); };
+    if (onBtn) onBtn.onclick = async () => { await DB.setAutoRenew(true); PROFILE.cancel_at_period_end = false; vManageSub(); };
+  }
+
+  function vInstall() {
+    view.innerHTML = `
+      <button class="backlink" onclick="location.hash='#/profile'">‹ Back</button>
+      <h1 class="page">Install the app</h1>
+      <p class="page-sub">Add Tai Motion to your home screen for one-tap access — works like a normal app, no app store needed.</p>
+      <div class="card" style="max-width:560px">
+        <div class="seg" id="os"><button data-os="iphone" class="on">iPhone</button><button data-os="android">Android</button></div>
+        <ol class="steps-list" id="steps"></ol>
+      </div>`;
+    const STEPS = {
+      iphone: ["Open taimotion.com in Safari", "Tap the Share button (square with an arrow)", "Scroll down and tap “Add to Home Screen”", "Tap “Add”, then open Tai Motion from your home screen"],
+      android: ["Open taimotion.com in Chrome", "Tap the menu (⋮, top-right)", "Tap “Add to Home screen” (you may need to scroll)", "Follow the prompts, then open Tai Motion from your home screen"],
+    };
+    const render = (os) => { view.querySelector("#steps").innerHTML = STEPS[os].map((s, i) => `<li><span class="sn">${i+1}</span><span>${esc(s)}</span></li>`).join(""); };
+    view.querySelectorAll("#os button").forEach(b => b.onclick = () => { view.querySelectorAll("#os button").forEach(x => x.classList.toggle("on", x === b)); render(b.dataset.os); });
+    render("iphone");
+  }
+
   function vSoon(title, icon, msg) { view.innerHTML = `<h1 class="page">${title}</h1><div class="soon"><div class="big">${icon}</div><p>${msg}</p></div>`; }
   function notFound() { view.innerHTML = `<div class="soon"><div class="big">🤷</div><p>Page not found.</p></div>`; }
 
   function route() {
     if (!DATA) return;
     const [r, a] = (location.hash.replace(/^#\//, "") || "home").split("/");
-    renderNav(["workout","track"].includes(r) ? ({workout:"exercises",track:"tracking"}[r]) : r);
+    const navMap = { workout: "exercises", track: "tracking", profile: "", subscription: "", install: "" };
+    renderNav(r in navMap ? navMap[r] : r);
     window.scrollTo(0, 0);
     ({ home: vHome, exercises: () => vExercises(a), workout: () => vWorkout(a), tracking: vTracking,
        track: () => vTrack(a), stress: () => vStress(a), favorites: vFavorites,
+       profile: vProfile, subscription: vManageSub, install: vInstall,
        academy: () => vSoon("Academy", "📖", "Daily Tai Chi & healthy-aging lessons are coming here soon."),
        challenges: () => vSoon("Challenges", "🏆", "Short habit challenges are coming soon."),
      }[r] || vHome)();
