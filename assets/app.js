@@ -186,7 +186,7 @@
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="badge beg">${esc(r.meal_type)}</span><h1 class="page" style="margin:0;font-size:24px">${esc(r.title)}</h1>
         <button class="favico" id="favBtn">${fav?"♥":"♡"}</button></div>
       <p class="page-sub">${r.minutes} min · ${r.kcal} kcal · ${r.servings} servings</p>
-      <div class="macros"><div><b>${r.protein}g</b><span>Protein</span></div><div><b>${r.carbs}g</b><span>Carbs</span></div><div><b>${r.fat}g</b><span>Fat</span></div></div>
+      <div class="macros"><div><b>${r.protein}g</b><span>Protein</span></div><div><b>${r.carbs}g</b><span>Carbs</span></div><div><b>${r.fat}g</b><span>Fat</span></div><div><b>${r.fiber||0}g</b><span>Fiber</span></div></div>
       <div class="card" style="margin-top:16px"><div class="tabs" id="rtabs"><button data-t="ing" class="on">Ingredients</button><button data-t="nut">Nutrition</button></div>
         <div id="rbody"><ul class="ing-list">${ing}</ul></div></div>
       <div class="section-title"><h2>Instructions</h2></div><div class="card listcard">${ins}</div>
