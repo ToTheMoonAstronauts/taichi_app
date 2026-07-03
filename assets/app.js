@@ -734,6 +734,9 @@
   // ---------- Academy ----------
   let _lessons = null;
   const ACADEMY_SECTIONS = ["Foundations & the Daily Habit", "Steady & Strong: Balance", "Move Freely: Joints & Mobility", "Calm Mind, Clear Focus", "Aging Well: Everyday Habits"];
+  const ACADEMY_CHIPS = ["Foundations", "Balance", "Mobility", "Calm & Focus", "Aging Well"];
+  const ACADEMY_UNLOCK_ALL = true;   // TEMP: preview all lessons unlocked
+  let _acadCat = "all";
   function renderArticle(body) {
     let html = "", inList = false;
     (body || "").split("\n").forEach(raw => {
@@ -753,9 +756,11 @@
     const doneCount = lessons.filter(l => prog[l.id]?.done).length;
     const pct = lessons.length ? Math.round(doneCount / lessons.length * 100) : 0;
     const groups = {};
-    lessons.forEach((l, i) => { l._unlocked = i === 0 || !!prog[lessons[i - 1].id]?.done; (groups[l.week_number] = groups[l.week_number] || []).push(l); });
-    const sectionsHtml = Object.keys(groups).sort((a, b) => a - b).map(wk => {
-      const items = groups[wk], secDone = items.filter(l => prog[l.id]?.done).length;
+    lessons.forEach((l, i) => { l._unlocked = ACADEMY_UNLOCK_ALL || i === 0 || !!prog[lessons[i - 1].id]?.done; (groups[l.week_number] = groups[l.week_number] || []).push(l); });
+    const chips = `<div class="filters">${["all", "1", "2", "3", "4", "5"].map(c => `<button data-c="${c}" class="${_acadCat === c ? "on" : ""}">${c === "all" ? "All" : ACADEMY_CHIPS[c - 1]}</button>`).join("")}</div>`;
+    const wks = _acadCat === "all" ? Object.keys(groups).sort((a, b) => a - b) : [_acadCat];
+    const sectionsHtml = wks.map(wk => {
+      const items = groups[wk] || []; const secDone = items.filter(l => prog[l.id]?.done).length;
       const rows = items.map(l => {
         const done = !!prog[l.id]?.done, locked = !l._unlocked && !done;
         return `<div class="lrow lesson ${locked ? "locked" : ""}" data-id="${l.id}">
@@ -763,13 +768,15 @@
           <span class="ltext"><span class="lt">${esc(l.title)}</span><span class="ls">Day ${l.day_number} · ${l.duration_min} min</span></span>
           <span class="chev">${locked ? "🔒" : "›"}</span></div>`;
       }).join("");
-      return `<div class="section-title" style="margin:24px 0 10px"><h2>${esc(ACADEMY_SECTIONS[wk-1] || ("Section " + wk))}</h2><span style="color:var(--muted);font-weight:700">${secDone}/${items.length}</span></div>
+      return `<div class="section-title" style="margin:22px 0 10px"><h2>${esc(ACADEMY_SECTIONS[wk-1] || ("Section " + wk))}</h2><span style="color:var(--muted);font-weight:700">${secDone}/${items.length}</span></div>
         <div class="card listcard">${rows}</div>`;
     }).join("");
-    view.innerHTML = `<h1 class="page">Academy</h1><p class="page-sub">A 50-day journey — one gentle lesson a day. Finish each to unlock the next.</p>
+    view.innerHTML = `<h1 class="page">Academy</h1><p class="page-sub">A 50-day journey — one gentle lesson a day, across five themes.</p>
       <div class="card"><div class="section-title" style="margin:0 0 8px"><h2>Your progress</h2><span style="color:var(--muted);font-weight:700">${doneCount} of ${lessons.length}</span></div>
         <div class="pbar" style="margin-bottom:0"><i style="width:${pct}%"></i></div></div>
+      <div style="margin-top:16px">${chips}</div>
       ${sectionsHtml}`;
+    view.querySelectorAll(".filters button").forEach(b => b.onclick = () => { _acadCat = b.dataset.c; vAcademy(); });
     view.querySelectorAll(".lesson:not(.locked)").forEach(el => el.onclick = () => location.hash = "#/lesson/" + el.dataset.id);
   }
   async function vLesson(id) {
@@ -778,8 +785,7 @@
     const prog = await DB.lessonProgress(); const taskDone = !!prog[id]?.task;
     view.innerHTML = `<button class="backlink" onclick="location.hash='#/academy'">‹ Academy</button>
       <div class="lesson-eyebrow">Day ${l.day_number} · ${esc(ACADEMY_SECTIONS[l.week_number-1] || "")}</div>
-      <h1 class="page" style="font-size:26px">${esc(l.title)}</h1>
-      <div class="info-photo" style="max-width:none;margin:10px 0 18px"><img src="${img(l.cover_seed || ("lesson"+id), 1000, 500)}" alt=""></div>
+      <h1 class="page" style="font-size:26px;margin-top:2px">${esc(l.title)}</h1>
       ${l.excerpt ? `<p class="lesson-lead">${esc(l.excerpt)}</p>` : ""}
       <div class="article">${renderArticle(l.body)}</div>
       <div class="card" style="margin-top:18px"><div class="section-title" style="margin:0 0 8px"><h2>Your task</h2></div>
