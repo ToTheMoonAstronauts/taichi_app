@@ -230,7 +230,7 @@
       const needs = (t.missing || []).filter(m => m === "weight" || m === "height");
       const note = (t.basis === "default" || needs.length)
         ? `<div class="plan-note">Add your ${needs.length?needs.join(" and "):"current weight and height"} in <a href="#/profile">Profile</a> to personalize this plan for weight loss.</div>` : "";
-      const strip = Array.from({ length: 7 }, (_, i) => PLAN.isoDate(PLAN.addDays(new Date(_week.startISO), i))).map(d => {
+      const strip = Array.from({ length: 7 }, (_, i) => PLAN.isoDate(PLAN.addDays(new Date(_week.startISO + "T00:00:00"), i))).map(d => {
         const dt = new Date(d + "T00:00:00"); const c = dayCount(d);
         return `<button class="daychip ${d===_selDay?'on':''} ${d===today?'today':''}" data-day="${d}">
           <span class="dow">${dt.toLocaleDateString(undefined,{weekday:'short'}).toUpperCase()}</span>

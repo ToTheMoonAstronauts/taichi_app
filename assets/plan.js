@@ -56,19 +56,21 @@ window.PLAN = (function () {
     };
   }
   function perMeal(daily) {
-    return {
-      breakfast: round10(daily * SPLIT.breakfast),
-      lunch: round10(daily * SPLIT.lunch),
-      dinner: round10(daily * SPLIT.dinner),
-      snack: round10(daily * SPLIT.snack),
-    };
+    const b = round10(daily * SPLIT.breakfast);
+    const l = round10(daily * SPLIT.lunch);
+    const d = round10(daily * SPLIT.dinner);
+    return { breakfast: b, lunch: l, dinner: d, snack: daily - b - l - d }; // remainder -> exact sum
   }
 
   // deterministic RNG so a given user+week always yields the same plan
   function hash(str) { let h = 2166136261 >>> 0; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
   function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 
-  function isoDate(d) { return d.toISOString().slice(0, 10); }
+  // Local calendar date (YYYY-MM-DD) — NOT UTC, so week/day math matches the user's timezone.
+  function isoDate(d) {
+    const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, "0"), da = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${da}`;
+  }
   function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
 
   // recipes: full list; split: per-meal kcal targets; weekStart: Date (Mon..). seed: user id.
