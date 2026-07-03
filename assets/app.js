@@ -114,6 +114,7 @@
   }
 
   async function vHome() {
+    const _n = _nav;
     const name = (PROFILE && PROFILE.name) || "there";
     view.innerHTML = `<div class="greet"><div class="day">${new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}</div>
       <h2>Good day, ${esc(name)}</h2><p>A little movement today goes a long way.</p></div>
@@ -134,6 +135,7 @@
     let fastSub = "Start a fast";
     if (activeFast) { const s = (Date.now() - new Date(activeFast.started_at)) / 3600000; fastSub = `⏱ Fasting now · ${Math.floor(s)}h ${Math.floor((s % 1) * 60)}m`; }
     else { const today = PLAN.isoDate(new Date()); const f = fastHist.find(x => PLAN.isoDate(new Date(x.started_at)) === today); if (f) { const d = (new Date(f.ended_at) - new Date(f.started_at)) / 3600000; fastSub = `✓ Done today · ${Math.floor(d)}h ${Math.round((d % 1) * 60)}m`; } }
+    if (_n !== _nav) return;   // user navigated away while Home was loading — don't clobber the new view
     view.innerHTML = `
       <div class="greet"><div class="day">${new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}</div>
         <h2>Good day, ${esc(name)}</h2><p>A little movement today goes a long way.</p></div>
@@ -225,6 +227,7 @@
     view.querySelector("#favBtn").onclick = async () => { const on = !ST.favorites[id]; if (on) ST.favorites[id] = true; else delete ST.favorites[id]; await DB.toggleFav(id, on); vWorkout(id); };
   }
 
+  let _nav = 0;             // bumped on every route() — async views bail if it changes mid-load
   // ---------- Meals ----------
   let _recipes = null;
   let _mealCat = "all", _mealQ = "";
@@ -423,9 +426,11 @@
   }
 
   async function vMeals(tab) {
+    const _n = _nav;
     tab = tab === "library" ? "library" : "plan";
     view.innerHTML = `<h1 class="page">Meal plan</h1><p class="page-sub">Loading&hellip;</p>`;
     _recipes || (_recipes = await DB.recipes());
+    if (_n !== _nav) return;
     const tabs = `<div class="tabs"><button data-t="plan" class="${tab==='plan'?'on':''}">Plan</button><button data-t="library" class="${tab==='library'?'on':''}">Library</button></div>`;
 
     if (tab === "library") {
@@ -573,9 +578,11 @@
   }
 
   async function vRecipe(id) {
+    const _n = _nav;
     const recipes = _recipes || (_recipes = await DB.recipes());
     const r = recipes.find(x => x.id === id); if (!r) return notFound();
     if (!_week) { try { _week = await ensureWeek(false); } catch (e) { /* plan optional */ } }
+    if (_n !== _nav) return;
     const fav = !!ST.favorites[id];
     const ing = (r.ingredients || []).map(i => `<li>${esc(i)}</li>`).join("");
     const ins = (r.instructions || []).map((s, i) => `<div class="lrow"><span class="lnum">${i+1}</span><span class="ltext"><span class="lt" style="font-weight:600">${esc(s)}</span></span></div>`).join("");
@@ -695,9 +702,11 @@
   // ---------- Fasting ----------
   function fmtHM(hoursFloat) { const h = Math.floor(hoursFloat), m = Math.round((hoursFloat - h) * 60); return `${h}h ${m}m`; }
   async function vFasting() {
+    const _n = _nav;
     if (_fastTimer) { clearInterval(_fastTimer); _fastTimer = null; }
     view.innerHTML = `<button class="backlink" onclick="location.hash='#/tracking'">‹ Tracking</button><h1 class="page">⏱️ Fasting</h1><p class="page-sub">Loading…</p>`;
     const [active, hist] = await Promise.all([DB.activeFast(), DB.fastingHistory()]);
+    if (_n !== _nav) return;
     const histHtml = hist.length ? hist.map(f => {
       const dur = (new Date(f.ended_at) - new Date(f.started_at)) / 3600000;
       const reached = dur >= (f.goal_hours - 0.01);
@@ -785,12 +794,14 @@
   }
 
   async function vFavorites() {
+    const _n = _nav;
     const ids = Object.keys(ST.favorites);
     if (!ids.length) {
       view.innerHTML = `<h1 class="page">Favorites</h1><div class="soon"><div class="big">♡</div><p>No favorites yet. Tap the heart on any workout, meal or session to save it here.</p></div>`;
       return;
     }
     const recipes = _recipes || (_recipes = await DB.recipes());
+    if (_n !== _nav) return;
     const workouts = DATA.workouts.filter(x => ids.includes(x.id));
     const media = Object.values(DATA.stress).flat().filter(x => ids.includes(x.id));
     const meals = recipes.filter(x => ids.includes(x.id));
@@ -938,8 +949,10 @@
     return html;
   }
   async function vAcademy() {
+    const _n = _nav;
     view.innerHTML = `<h1 class="page">Academy</h1><p class="page-sub">Loading…</p>`;
     const [lessons, prog] = await Promise.all([DB.academyLessons(), DB.lessonProgress()]);
+    if (_n !== _nav) return;
     _lessons = lessons;
     const doneCount = lessons.filter(l => prog[l.id]?.done).length;
     const pct = lessons.length ? Math.round(doneCount / lessons.length * 100) : 0;
@@ -968,9 +981,11 @@
     view.querySelectorAll(".lesson:not(.locked)").forEach(el => el.onclick = () => location.hash = "#/lesson/" + el.dataset.id);
   }
   async function vLesson(id) {
+    const _n = _nav;
     const list = _lessons || await DB.academyLessons();
     const l = list.find(x => x.id === id); if (!l) return notFound();
     const prog = await DB.lessonProgress(); const taskDone = !!prog[id]?.task;
+    if (_n !== _nav) return;
     view.innerHTML = `<button class="backlink" onclick="location.hash='#/academy'">‹ Academy</button>
       <div class="lesson-eyebrow">Day ${l.day_number} · ${esc(ACADEMY_SECTIONS[l.week_number-1] || "")}</div>
       <h1 class="page" style="font-size:26px;margin-top:2px">${esc(l.title)}</h1>
@@ -986,9 +1001,11 @@
 
   // ---------- Challenges ----------
   async function vChallenges(tab) {
+    const _n = _nav;
     tab = tab || "all";
     view.innerHTML = `<h1 class="page">Challenges</h1><p class="page-sub">Loading…</p>`;
     const [list, mine] = await Promise.all([DB.challengesList(), DB.myChallenges()]);
+    if (_n !== _nav) return;
     const tabs = `<div class="tabs"><button data-t="mine" class="${tab==='mine'?'on':''}">My challenges</button><button data-t="all" class="${tab==='all'?'on':''}">All challenges</button></div>`;
     const show = tab === "mine" ? list.filter(c => mine[c.id]) : list;
     const cards = show.length ? `<div class="grid-cards">${show.map(c => {
@@ -1002,7 +1019,9 @@
     view.querySelectorAll(".chal").forEach(el => el.onclick = () => location.hash = "#/challenge/" + el.dataset.id);
   }
   async function vChallenge(id) {
+    const _n = _nav;
     const [list, mine] = await Promise.all([DB.challengesList(), DB.myChallenges()]);
+    if (_n !== _nav) return;
     const c = list.find(x => x.id === id); if (!c) return notFound();
     const m = mine[id]; const dd = (m && m.days_done) || [];
     const grid = Array.from({ length: c.days }, (_, i) => i + 1).map(d => {
@@ -1034,6 +1053,7 @@
 
   function route() {
     if (!DATA) return;
+    _nav++;
     const [r, a] = (location.hash.replace(/^#\//, "") || "home").split("/");
     const navMap = { workout: "exercises", track: "tracking", profile: "", subscription: "", install: "",
       lesson: "academy", challenge: "challenges", recipe: "meals" };
