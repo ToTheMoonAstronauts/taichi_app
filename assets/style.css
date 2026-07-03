@@ -18,7 +18,7 @@ a{color:inherit}
 .layout{min-height:100vh}
 .sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar);background:#fff;border-right:1px solid var(--line);
   padding:18px 12px;display:flex;flex-direction:column;gap:4px;z-index:30}
-.sidebar .brand{font-family:var(--serif);font-weight:600;color:var(--ink);font-size:23px;letter-spacing:.14em;padding:10px 12px 18px;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.sidebar .brand{font-family:var(--serif);font-weight:600;color:var(--ink);font-size:20px;letter-spacing:.14em;padding:10px 12px 18px;display:flex;align-items:center;gap:10px;white-space:nowrap}
 .nav a{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;color:var(--ink);
   text-decoration:none;font-weight:600;font-size:16px}
 .nav a .ic{font-size:18px;width:22px;text-align:center}
