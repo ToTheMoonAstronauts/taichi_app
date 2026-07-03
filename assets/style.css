@@ -245,7 +245,37 @@ h1.page{font-size:28px;font-weight:800;margin:0 0 4px}
 .mc-state.done{background:var(--primary-soft,#eaf3ec);color:var(--primary-dark,#3a6b49)}
 .mc-state.skip{background:#f1f3f2;color:var(--muted,#6b7a70)}
 .mc-desc{font-size:13px;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.recipe-desc{font-size:15px;color:#34433b;margin:2px 0 14px;line-height:1.4}
+.recipe-desc{font-size:15px;color:#34433b;margin:14px 2px 4px;line-height:1.45}
+
+/* Recipe detail — two-column hero (image left, info right) */
+.recipe-hero{display:flex;gap:18px;background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:14px;margin:6px 0 4px;align-items:stretch}
+.rh-img{flex:0 0 40%;max-width:340px}
+.rh-img img{width:100%;height:100%;min-height:220px;max-height:340px;object-fit:cover;border-radius:12px;display:block}
+.rh-info{flex:1;min-width:0;display:flex;flex-direction:column}
+.rh-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.rh-top .favico{margin:0;width:40px;height:40px;flex:none}
+.rh-title{font-size:25px;font-weight:800;line-height:1.15;margin:10px 0 8px}
+.rh-meta{color:var(--muted);font-size:14px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.rh-macros{margin:0}
+.rh-macros>div{padding:12px 8px}
+/* Done / Skip on the recipe page */
+.ra-actions{display:flex;gap:10px;margin-top:auto;padding-top:14px}
+.ra-done{flex:1;background:var(--primary);color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.ra-done:hover{background:var(--primary-dark)}
+.ra-skip{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 22px;font-size:15px;font-weight:700;color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.ra-skip:hover{background:#f4f7f2}
+.ra-state{display:flex;align-items:center;justify-content:space-between;border-radius:12px;padding:15px 16px;margin-top:auto;font-weight:700;font-size:15px}
+.ra-state.done{background:var(--primary-soft);color:var(--primary-dark)}
+.ra-state.skip{background:#eef1ef;color:var(--muted)}
+.ra-state button{background:none;border:none;color:inherit;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:13px;opacity:.9}
+.ra-state button:hover{opacity:1}
+@media (max-width:640px){
+  .recipe-hero{flex-direction:column;padding:10px;gap:12px}
+  .rh-img{flex:none;max-width:none}
+  .rh-img img{min-height:200px;max-height:240px}
+  .rh-title{font-size:22px;margin:6px 0}
+  .ra-actions,.ra-state{margin-top:4px}
+}
 
 /* Meal plan — header, target, week strip, subtabs */
 .mealhdr{display:flex;align-items:center;justify-content:space-between;gap:12px}

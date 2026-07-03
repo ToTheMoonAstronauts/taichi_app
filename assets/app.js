@@ -157,6 +157,7 @@
   let _mealCat = "all", _mealQ = "";
   let _week = null;         // { startISO, endISO, items:{'date|slot':item}, targets }
   let _selDay = null;       // ISO date currently selected
+  let _recipeCtx = null;    // { recipe, date, slot } — set when opening a recipe from the plan
   const SLOTS = ["breakfast", "lunch", "dinner", "snack"];
   const CAP = s => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -244,7 +245,7 @@
           : it.status === "skipped"
           ? `<div class="mc-state skip" data-slot="${slot}" data-act="reset">&#9655; Skipped</div>`
           : `<div class="mc-actions"><button data-slot="${slot}" data-act="done">&#10003; Done</button><button data-slot="${slot}" data-act="change">&#8635; Change</button><button data-slot="${slot}" data-act="skip">&#9655; Skip</button></div>`;
-        return `<div class="meal-card" data-id="${r.id}"><div class="mc-top"><img src="${img(r.image_seed,240,180)}" alt="">
+        return `<div class="meal-card" data-id="${r.id}" data-slot="${slot}"><div class="mc-top"><img src="${img(r.image_seed,240,180)}" alt="">
           <div class="mc-body"><span class="badge beg">${CAP(slot)}</span><div class="n">${esc(r.title)}</div>${r.description?`<div class="mc-desc">${esc(r.description)}</div>`:""}<div class="s">${r.minutes} min &middot; ${r.kcal} kcal${it.kcal_target?` &middot; target ~${it.kcal_target}`:""}</div></div></div>${footer}</div>`;
       }).join("");
       const selDate = new Date(_selDay + "T00:00:00");
@@ -268,7 +269,7 @@
         if (b.dataset.s === "meals") { renderPlan(); }
         else sv.innerHTML = `<div class="soon"><div class="big">${b.dataset.s==='nutrition'?'&#128202;':'&#128722;'}</div><p>${b.dataset.s==='nutrition'?'Nutrition totals vs. your daily target are coming soon.':'Auto-built grocery lists from your week are coming soon.'}</p></div>`;
       });
-      view.querySelectorAll(".meal-card .mc-top").forEach(el => el.onclick = () => location.hash = "#/recipe/" + el.closest(".meal-card").dataset.id);
+      view.querySelectorAll(".meal-card .mc-top").forEach(el => el.onclick = () => { const c = el.closest(".meal-card"); _recipeCtx = { recipe: c.dataset.id, date: _selDay, slot: c.dataset.slot }; location.hash = "#/recipe/" + c.dataset.id; });
       view.querySelectorAll(".mc-actions button, .mc-state[data-slot]").forEach(b => b.onclick = async (e) => {
         e.stopPropagation();
         const slot = b.dataset.slot, act = b.dataset.act, key = _selDay + "|" + slot, it = _week.items[key];
@@ -290,25 +291,63 @@
     renderPlan();
   }
 
+  // find the plan item (date+slot) this recipe corresponds to, if it's in the current week
+  function planItemForRecipe(id, mealType) {
+    if (!_week) return null;
+    const today = PLAN.isoDate(new Date());
+    if (_recipeCtx && _recipeCtx.recipe === id) {
+      const it = _week.items[_recipeCtx.date + "|" + _recipeCtx.slot];
+      if (it && it.recipe_id === id) return it;
+    }
+    const matches = Object.values(_week.items).filter(it => it.recipe_id === id && it.meal_type === mealType);
+    return matches.find(it => it.plan_date === today) || matches.find(it => it.plan_date === _selDay) || matches[0] || null;
+  }
+  function recipeActionHtml(it) {
+    if (!it) return "";
+    if (it.status === "done") return `<div class="ra-state done"><span>&#10003; Completed</span><button data-act="reset">&#8635; Undo</button></div>`;
+    if (it.status === "skipped") return `<div class="ra-state skip"><span>&#9655; Skipped</span><button data-act="reset">&#8635; Undo</button></div>`;
+    return `<div class="ra-actions"><button class="ra-done" data-act="done">&#10003; Mark complete</button><button class="ra-skip" data-act="skip">&#9655; Skip</button></div>`;
+  }
+
   async function vRecipe(id) {
     const recipes = _recipes || (_recipes = await DB.recipes());
     const r = recipes.find(x => x.id === id); if (!r) return notFound();
+    if (!_week) { try { _week = await ensureWeek(false); } catch (e) { /* plan optional */ } }
     const fav = !!ST.favorites[id];
     const ing = (r.ingredients || []).map(i => `<li>${esc(i)}</li>`).join("");
     const ins = (r.instructions || []).map((s, i) => `<div class="lrow"><span class="lnum">${i+1}</span><span class="ltext"><span class="lt" style="font-weight:600">${esc(s)}</span></span></div>`).join("");
-    const similar = recipes.filter(x => x.id !== id).slice(0, 6).map(x => `<div class="wcard meal" data-id="${x.id}" style="min-width:200px"><div class="thumb"><img src="${img(x.image_seed,400,260)}"><span class="b badge beg">${x.kcal} kcal</span></div><div class="body"><div class="t" style="font-size:15px">${esc(x.title)}</div></div></div>`).join("");
+    const similar = recipes.filter(x => x.id !== id && x.meal_type === r.meal_type).slice(0, 6).map(x => `<div class="wcard meal" data-id="${x.id}" style="min-width:200px"><div class="thumb"><img src="${img(x.image_seed,400,260)}"><span class="b badge beg">${x.kcal} kcal</span></div><div class="body"><div class="t" style="font-size:15px">${esc(x.title)}</div></div></div>`).join("");
+    const planItem = planItemForRecipe(id, r.meal_type);
     view.innerHTML = `<button class="backlink" onclick="location.hash='#/meals'">‹ Meals</button>
-      <div class="info-photo" style="max-width:none;margin:6px 0 14px"><img src="${img(r.image_seed,1000,520)}" alt=""></div>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="badge beg">${esc(r.meal_type)}</span><h1 class="page" style="margin:0;font-size:24px">${esc(r.title)}</h1>
-        <button class="favico" id="favBtn">${fav?"♥":"♡"}</button></div>
-      <p class="page-sub">${r.minutes} min · ${r.kcal} kcal · ${r.servings} servings</p>
+      <div class="recipe-hero">
+        <div class="rh-img"><img src="${img(r.image_seed,700,700)}" alt=""></div>
+        <div class="rh-info">
+          <div class="rh-top"><span class="badge beg">${esc(r.meal_type)}</span>
+            <button class="favico" id="favBtn" title="Save">${fav?"♥":"♡"}</button></div>
+          <h1 class="rh-title">${esc(r.title)}</h1>
+          <div class="rh-meta">${r.minutes} min &middot; ${r.kcal} kcal &middot; ${r.servings} serving${r.servings==1?'':'s'}</div>
+          <div class="macros rh-macros"><div><b>${r.protein}g</b><span>Protein</span></div><div><b>${r.carbs}g</b><span>Carbs</span></div><div><b>${r.fat}g</b><span>Fat</span></div><div><b>${r.fiber||0}g</b><span>Fiber</span></div></div>
+          <div id="recipeAction">${recipeActionHtml(planItem)}</div>
+        </div>
+      </div>
       ${r.description ? `<p class="recipe-desc">${esc(r.description)}</p>` : ""}
-      <div class="macros"><div><b>${r.kcal}</b><span>kcal</span></div><div><b>${r.protein}g</b><span>Protein</span></div><div><b>${r.carbs}g</b><span>Carbs</span></div><div><b>${r.fat}g</b><span>Fat</span></div><div><b>${r.fiber||0}g</b><span>Fiber</span></div></div>
       <div class="section-title"><h2>Ingredients</h2></div><div class="card"><ul class="ing-list">${ing}</ul></div>
       <div class="section-title"><h2>Instructions</h2></div><div class="card listcard">${ins}</div>
       <div class="section-title"><h2>Similar recipes</h2></div><div class="row-scroll">${similar}</div>`;
     view.querySelector("#favBtn").onclick = async () => { const on = !ST.favorites[id]; if (on) ST.favorites[id] = true; else delete ST.favorites[id]; await DB.toggleFav(id, on, "recipe"); vRecipe(id); };
-    view.querySelectorAll(".meal").forEach(el => el.onclick = () => location.hash = "#/recipe/" + el.dataset.id);
+    view.querySelectorAll(".meal").forEach(el => el.onclick = () => { _recipeCtx = null; location.hash = "#/recipe/" + el.dataset.id; });
+    // Done / Skip bound to the plan item
+    const raEl = view.querySelector("#recipeAction");
+    function bindRA() {
+      if (!planItem || !raEl) return;
+      raEl.querySelectorAll("[data-act]").forEach(b => b.onclick = async () => {
+        const status = b.dataset.act === "reset" ? "pending" : b.dataset.act === "done" ? "done" : "skipped";
+        planItem.status = status;                    // same object stored in _week.items -> plan list stays in sync
+        raEl.innerHTML = recipeActionHtml(planItem); bindRA();
+        await DB.setPlanStatus(planItem.plan_date, planItem.meal_type, status);
+      });
+    }
+    bindRA();
   }
 
   function vTracking() {
