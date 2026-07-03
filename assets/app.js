@@ -115,7 +115,10 @@
 
   async function vHome() {
     const name = (PROFILE && PROFILE.name) || "there";
-    const hero = DATA.workouts.find(w => w.locked) || DATA.workouts[0];
+    view.innerHTML = `<div class="greet"><div class="day">${new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}</div>
+      <h2>Good day, ${esc(name)}</h2><p>A little movement today goes a long way.</p></div>
+      <p class="page-sub" style="padding:8px 2px">Loading your day&hellip;</p>`;
+    const hero = DATA.workouts.find(w => !w.locked && (w.level || "").toLowerCase() === "beginner") || DATA.workouts.find(w => !w.locked) || DATA.workouts[0];
     let activeFast = null, fastHist = [];
     try { if (!_recipes) _recipes = await DB.recipes(); if (!_week) _week = await ensureWeek(false); } catch (e) { /* plan optional */ }
     const acadCard = await homeAcademyCard();
@@ -1010,7 +1013,7 @@
       <div class="info-photo" style="max-width:none;margin:6px 0 14px"><img src="${img(c.cover_seed,1000,440)}" alt=""></div>
       <h1 class="page">${esc(c.title)}</h1><p class="page-sub">${esc(c.subtitle || "")} · ${c.days} days</p>
       <div class="card"><div class="section-title" style="margin:0 0 8px"><h2>About</h2></div><p style="color:#4a3f34;margin:0">${esc(c.about || "")}</p></div>
-      <div class="section-title"><h2>Day-by-day plan</h2><span style="color:var(--muted);font-weight:700">${m ? dd.length + "/" + c.days : c.days + " days"}</span></div>
+      <div class="section-title"><h2>Day-by-day plan</h2><span id="dayCount" style="color:var(--muted);font-weight:700">${m ? dd.length + "/" + c.days : c.days + " days"}</span></div>
       <div class="daygrid">${grid}</div>
       <p class="page-sub" style="margin-top:10px">${m ? "Tap a day to check it off." : "A peek at the plan. Start the challenge to check off each day."}</p>
       <div class="cta-fixed"><button class="btn block" id="cbtn">${m ? "Keep going" : "Start the challenge"}</button></div>`;
@@ -1021,6 +1024,7 @@
       view.querySelectorAll(".daycell").forEach(cell => cell.onclick = async () => {
         const day = +cell.dataset.day; const nd = await DB.toggleChallengeDay(id, day);
         const on = nd.includes(day); cell.classList.toggle("done", on); cell.textContent = on ? "✓" : day;
+        const dc = view.querySelector("#dayCount"); if (dc) dc.textContent = nd.length + "/" + c.days;
       });
     }
   }
