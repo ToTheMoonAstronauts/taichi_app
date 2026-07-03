@@ -1,3 +1,17 @@
+/* Theme: default = brown. ?t=g -> green, ?t=b -> brown. Choice persists. */
+(function () {
+  try {
+    const t = new URLSearchParams(location.search).get("t");
+    if (t === "g") localStorage.setItem("tm_theme", "green");
+    else if (t === "b") localStorage.setItem("tm_theme", "brown");
+    const theme = localStorage.getItem("tm_theme") === "green" ? "green" : "brown";
+    document.documentElement.setAttribute("data-theme", theme);
+    const applyLogo = () => document.querySelectorAll("img.logo").forEach(i => i.setAttribute("src", theme === "green" ? "assets/logo.webp" : "assets/logo2.webp"));
+    if (document.readyState !== "loading") applyLogo();
+    else document.addEventListener("DOMContentLoaded", applyLogo);
+  } catch (e) {}
+})();
+
 /* Supabase client + auth helpers for the app. Loaded after the supabase-js UMD bundle. */
 window.SUPA = {
   url: "https://pixtozeghxwiidpnloih.supabase.co",

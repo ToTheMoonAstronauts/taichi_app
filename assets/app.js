@@ -226,7 +226,7 @@
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="badge ${lv(w.level)}">${w.level}</span><h1 class="page" style="margin:0;font-size:24px">${esc(w.title)}</h1>
         <button class="favico" id="favBtn" title="Save">${fav?"♥":"♡"}</button></div>
       <p class="page-sub">${w.min} min · ${esc(w.focus || "")}${steps.length?` · ${steps.length} workouts`:""}</p>
-      <p style="color:#4a3f34">A gentle ${esc((w.cat||"").toLowerCase())} session. Follow along at your own pace — sit tall, breathe slowly, and stop if anything hurts.</p>
+      <p style="color:var(--ink-soft)">A gentle ${esc((w.cat||"").toLowerCase())} session. Follow along at your own pace — sit tall, breathe slowly, and stop if anything hurts.</p>
       ${stepsHtml}
       <div class="cta-fixed"><button class="btn block" id="markDone">${done?"✓ Completed — do it again":"▶ Start collection"}</button></div>`;
     view.querySelector("#markDone").onclick = async () => { const on = !ST.completed[id]; if (on) ST.completed[id] = true; else delete ST.completed[id]; await DB.toggleSession(id, on); vWorkout(id); };
@@ -330,7 +330,7 @@
   function donut(val, max, big, unit) {
     const R = 34, C = 2 * Math.PI * R, pct = max ? Math.max(0, Math.min(1, val / max)) : 0, dash = C * pct;
     return `<svg viewBox="0 0 80 80" class="donut">
-      <circle cx="40" cy="40" r="${R}" fill="none" stroke="#ece3d8" stroke-width="8"/>
+      <circle cx="40" cy="40" r="${R}" fill="none" stroke="var(--track)" stroke-width="8"/>
       <circle cx="40" cy="40" r="${R}" fill="none" stroke="var(--primary)" stroke-width="8" stroke-linecap="round"
         stroke-dasharray="${dash.toFixed(1)} ${(C-dash).toFixed(1)}" transform="rotate(-90 40 40)"/>
       <text x="40" y="42" text-anchor="middle" class="dnum2">${big}</text>
@@ -433,9 +433,9 @@
     if (!w) { alert("Please allow pop-ups to print your list."); return; }
     const rows = lines.map(l => `<li><span class="cb"></span>${esc(l)}</li>`).join("");
     w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Grocery list — Tai Motion</title>
-      <style>body{font-family:Georgia,'Times New Roman',serif;color:#2a2319;padding:36px;max-width:560px;margin:0 auto}
-      h1{font-size:24px;font-weight:500;margin:0 0 4px}p{color:#9a8f84;margin:0 0 18px;font-size:14px}
-      ul{padding:0;margin:0}li{list-style:none;padding:9px 2px;border-bottom:1px solid #eadfd2;font-size:16px}
+      <style>body{font-family:Georgia,'Times New Roman',serif;color:var(--ink);padding:36px;max-width:560px;margin:0 auto}
+      h1{font-size:24px;font-weight:500;margin:0 0 4px}p{color:var(--muted);margin:0 0 18px;font-size:14px}
+      ul{padding:0;margin:0}li{list-style:none;padding:9px 2px;border-bottom:1px solid var(--band-a);font-size:16px}
       .cb{display:inline-block;width:15px;height:15px;border:1.5px solid #b7a894;border-radius:4px;margin-right:12px;vertical-align:-2px}
       @media print{body{padding:16px}}</style></head><body>
       <h1>Tai Motion — Grocery list</h1><p>${_grocDays.size} day${_grocDays.size===1?'':'s'} · ${lines.length} item${lines.length===1?'':'s'}</p>
@@ -857,11 +857,11 @@
     const d = pts.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
     const tgtLine = (target > 0) ? `<line x1="${pad}" y1="${y(target).toFixed(1)}" x2="${W-pad}" y2="${y(target).toFixed(1)}" stroke="#a9c4b0" stroke-dasharray="4 4"/>` : "";
     return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">
-      <path d="${d} L${x(pts.length-1).toFixed(1)},${H-pad} L${x(0).toFixed(1)},${H-pad} Z" fill="#bf735022"/>
+      <path d="${d} L${x(pts.length-1).toFixed(1)},${H-pad} L${x(0).toFixed(1)},${H-pad} Z" fill="var(--primary-fade)"/>
       ${tgtLine}
-      <path d="${d}" fill="none" stroke="#bf7350" stroke-width="2.5"/>
-      <circle cx="${x(0).toFixed(1)}" cy="${y(pts[0]).toFixed(1)}" r="4" fill="#bf7350"/>
-      <circle cx="${x(pts.length-1).toFixed(1)}" cy="${y(pts[pts.length-1]).toFixed(1)}" r="4" fill="#bf7350"/>
+      <path d="${d}" fill="none" stroke="var(--primary)" stroke-width="2.5"/>
+      <circle cx="${x(0).toFixed(1)}" cy="${y(pts[0]).toFixed(1)}" r="4" fill="var(--primary)"/>
+      <circle cx="${x(pts.length-1).toFixed(1)}" cy="${y(pts[pts.length-1]).toFixed(1)}" r="4" fill="var(--primary)"/>
     </svg><div class="chartlabels"><span>Previous: ${cvW(pts[0])} ${U}</span><span>Target ${target>0?cvW(target)+" "+U:"—"}</span><span>Last: ${cvW(pts[pts.length-1])} ${U}</span></div>`;
   }
 
@@ -1115,7 +1115,7 @@
     view.innerHTML = `<button class="backlink" onclick="location.hash='#/challenges'">‹ Challenges</button>
       <div class="info-photo" style="max-width:none;margin:6px 0 14px"><img src="${img(c.cover_seed,1000,440)}" alt=""></div>
       <h1 class="page">${esc(c.title)}</h1><p class="page-sub">${esc(c.subtitle || "")} · ${c.days} days</p>
-      <div class="card"><div class="section-title" style="margin:0 0 8px"><h2>About</h2></div><p style="color:#4a3f34;margin:0">${esc(c.about || "")}</p></div>
+      <div class="card"><div class="section-title" style="margin:0 0 8px"><h2>About</h2></div><p style="color:var(--ink-soft);margin:0">${esc(c.about || "")}</p></div>
       <div class="section-title"><h2>Day-by-day plan</h2><span id="dayCount" style="color:var(--muted);font-weight:700">${m ? dd.length + "/" + c.days : c.days + " days"}</span></div>
       <div class="daygrid">${grid}</div>
       <p class="page-sub" style="margin-top:10px">${m ? "Tap a day to check it off." : "A peek at the plan. Start the challenge to check off each day."}</p>
