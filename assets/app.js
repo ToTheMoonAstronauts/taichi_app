@@ -166,12 +166,17 @@
     });
   }
 
+  function walkDay(w) { return DATA.workouts.filter(x => x.cat === "Tai Chi Walking").findIndex(x => x.id === w.id) + 1; }
   function wcard(w) {
     const fav = !!ST.favorites[w.id];
-    return `<div class="wcard" data-id="${w.id}" ${w.locked ? 'data-locked="1"' : ""}>
-      <div class="thumb"><img src="${img(w.seed,400,260)}" alt=""><span class="b badge ${lv(w.level)}">${w.level}</span>
+    const isWalk = w.cat === "Tai Chi Walking";
+    const src = (isWalk && /^https?:/.test(w.seed || "")) ? w.seed : img(w.seed, 400, 260);
+    const title = isWalk ? `Day ${walkDay(w)}` : esc(w.title);
+    const meta = isWalk ? `${esc(w.title)} · ${w.min} min` : `${w.min} min · ${esc(w.focus || "")}`;
+    return `<div class="wcard${isWalk ? " walk" : ""}" data-id="${w.id}" ${w.locked ? 'data-locked="1"' : ""}>
+      <div class="thumb"><img src="${src}" alt=""><span class="b badge ${lv(w.level)}">${w.level}</span>
       ${w.locked ? `<div class="lock">🔒<span>${esc(w.locked)}</span></div>` : `<button class="fav" data-id="${w.id}">${fav ? "♥" : "♡"}</button>`}</div>
-      <div class="body"><div class="t">${esc(w.title)}</div><div class="m">${w.min} min · ${esc(w.focus || "")}</div></div></div>`;
+      <div class="body"><div class="t">${title}</div><div class="m">${meta}</div></div></div>`;
   }
 
   function vExercises(tab) {
@@ -212,17 +217,43 @@
     const w = DATA.workouts.find(x => x.id === id); if (!w) return notFound();
     const done = !!ST.completed[id], fav = !!ST.favorites[id];
     const steps = w.steps || [];
+    if (w.cat === "Tai Chi Walking") return vWalkWorkout(w, id, done, fav, steps);
     const stepsHtml = steps.length ? `<div class="section-title"><h2>Workouts</h2><span style="color:var(--muted);font-weight:700">${steps.length}</span></div>
       <div class="card listcard">${steps.map((s, i) => `<div class="lrow"><span class="lnum">${String(i+1).padStart(2,"0")}</span>
         <span class="ltext"><span class="lt">${esc(s.t)}</span><span class="ls"><span class="badge ${lv(s.lvl)}">${esc(s.lvl||"Beginner")}</span> · ${s.min||""} min</span></span><span class="chev">›</span></div>`).join("")}</div>` : "";
     view.innerHTML = `<button class="backlink" onclick="history.back()">‹ Back</button>
-      <div class="player"><img src="${img(w.seed,1000,560)}" alt=""><div class="ov"><span class="badge" style="position:absolute;top:16px;left:16px;background:rgba(255,255,255,.9)">COLLECTION</span><div class="pbtn">▶</div><div class="note">Video coming soon — hosting to be added</div></div></div>
+      <div class="player"><img src="${img(w.seed,1000,560)}" alt=""><div class="ov"><span class="badge" style="position:absolute;top:16px;left:16px;background:rgba(42,35,25,.82);color:#fff">COLLECTION</span><div class="pbtn">▶</div><div class="note">Video coming soon — hosting to be added</div></div></div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="badge ${lv(w.level)}">${w.level}</span><h1 class="page" style="margin:0;font-size:24px">${esc(w.title)}</h1>
         <button class="favico" id="favBtn" title="Save">${fav?"♥":"♡"}</button></div>
       <p class="page-sub">${w.min} min · ${esc(w.focus || "")}${steps.length?` · ${steps.length} workouts`:""}</p>
       <p style="color:#4a3f34">A gentle ${esc((w.cat||"").toLowerCase())} session. Follow along at your own pace — sit tall, breathe slowly, and stop if anything hurts.</p>
       ${stepsHtml}
       <div class="cta-fixed"><button class="btn block" id="markDone">${done?"✓ Completed — do it again":"▶ Start collection"}</button></div>`;
+    view.querySelector("#markDone").onclick = async () => { const on = !ST.completed[id]; if (on) ST.completed[id] = true; else delete ST.completed[id]; await DB.toggleSession(id, on); vWorkout(id); };
+    view.querySelector("#favBtn").onclick = async () => { const on = !ST.favorites[id]; if (on) ST.favorites[id] = true; else delete ST.favorites[id]; await DB.toggleFav(id, on); vWorkout(id); };
+  }
+
+  function vWalkWorkout(w, id, done, fav, steps) {
+    const day = walkDay(w);
+    const s0 = steps[0] || {};
+    const stepRows = steps.map((s, i) => `<button class="wstep${i === 0 ? " on" : ""}" data-i="${i}">
+        <span class="lnum">${String(i + 1).padStart(2, "0")}</span>
+        <span class="ltext"><span class="lt">${esc(s.t)}</span><span class="ls"><span class="badge ${lv(s.lvl)}">${esc(s.lvl || "Beginner")}</span> · ${s.min || ""} min</span></span></button>`).join("");
+    view.innerHTML = `<button class="backlink" onclick="history.back()">‹ Back</button>
+      <div class="walkhero"><span class="badge daybadge">Day ${day}</span><img id="wkImg" src="${s0.img || img(w.seed,400,400)}" alt=""></div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px"><span class="badge ${lv(w.level)}">${w.level}</span><h1 class="page" style="margin:0;font-size:24px">${esc(w.title)}</h1><button class="favico" id="favBtn" title="Save">${fav?"♥":"♡"}</button></div>
+      <p class="page-sub">Day ${day} · ${w.min} min · ${steps.length} moves</p>
+      <div class="card walkdesc"><div class="wd-name" id="wkName">${esc(s0.t || "")}</div><p class="wd-text" id="wkDesc">${esc(s0.desc || "Tap a move to see how it's done.")}</p></div>
+      <div class="section-title"><h2>Moves</h2><span style="color:var(--muted);font-weight:700">${steps.length}</span></div>
+      <div class="card listcard walk-steps">${stepRows}</div>
+      <div class="cta-fixed"><button class="btn block" id="markDone">${done ? "✓ Completed — do it again" : `▶ Start Day ${day}`}</button></div>`;
+    view.querySelectorAll(".wstep").forEach(b => b.onclick = () => {
+      const i = +b.dataset.i, s = steps[i] || {};
+      view.querySelectorAll(".wstep").forEach(x => x.classList.toggle("on", x === b));
+      const im = view.querySelector("#wkImg"); if (im && s.img) im.src = s.img;
+      const nm = view.querySelector("#wkName"); if (nm) nm.textContent = s.t || "";
+      const de = view.querySelector("#wkDesc"); if (de) de.textContent = s.desc || "";
+    });
     view.querySelector("#markDone").onclick = async () => { const on = !ST.completed[id]; if (on) ST.completed[id] = true; else delete ST.completed[id]; await DB.toggleSession(id, on); vWorkout(id); };
     view.querySelector("#favBtn").onclick = async () => { const on = !ST.favorites[id]; if (on) ST.favorites[id] = true; else delete ST.favorites[id]; await DB.toggleFav(id, on); vWorkout(id); };
   }

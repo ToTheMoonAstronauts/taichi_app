@@ -402,3 +402,20 @@ h1.page{font-family:var(--serif);font-size:29px;font-weight:600;letter-spacing:-
 /* weight trend chart labels — space the three readouts evenly */
 .chartlabels{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px}
 .chartlabels span:nth-child(2){color:var(--primary);font-weight:700}
+
+/* ---- Tai Chi Walking: workout detail + cards ---- */
+.walkhero{position:relative;width:100%;height:220px;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);
+  background:linear-gradient(135deg,#eef2ee,#f4ede5);display:flex;align-items:center;justify-content:center}
+.walkhero img{width:200px;height:200px;max-height:200px;object-fit:contain;display:block}
+.walkhero .daybadge{position:absolute;top:14px;left:14px;background:var(--primary);color:#fff;font-weight:700;letter-spacing:.3px}
+.walkdesc{margin-top:14px;padding:18px 20px}
+.walkdesc .wd-name{font-family:var(--serif,Georgia,serif);font-weight:600;font-size:19px;color:var(--ink);margin-bottom:6px}
+.walkdesc .wd-text{margin:0;color:#4a3f34;line-height:1.5}
+.walk-steps{padding:4px 0}
+.walk-steps .wstep{display:flex;align-items:center;gap:0;width:100%;text-align:left;font:inherit;color:var(--ink);
+  background:transparent;border:none;border-bottom:1px solid var(--line);padding:14px 18px;cursor:pointer;transition:background .12s}
+.walk-steps .wstep:last-child{border-bottom:none}
+.walk-steps .wstep:hover{background:#faf6f1}
+.walk-steps .wstep.on{background:var(--primary-soft)}
+.wcard.walk .thumb{background:linear-gradient(135deg,#eef2ee,#f4ede5)}
+.wcard.walk .thumb img{object-fit:contain;width:100%;height:100%}
