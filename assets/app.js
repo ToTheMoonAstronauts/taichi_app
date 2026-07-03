@@ -33,7 +33,7 @@
   // ---------- Auth / gate ----------
   function renderAuth() {
     document.getElementById("nav").innerHTML = ""; document.getElementById("bottomnav").innerHTML = "";
-    view.innerHTML = `<div class="gate"><div class="big">🪷</div>
+    view.innerHTML = `<div class="gate"><img class="gate-logo" src="assets/logo.webp" alt="Tai Motion">
       <h1 class="page">Sign in</h1><p class="page-sub">Enter your email and we'll send you a magic link.</p>
       <div class="card" style="max-width:380px;margin:0 auto"><input id="email" class="logger" type="email" placeholder="you@example.com" style="width:100%;border:2px solid var(--line);border-radius:12px;padding:14px;font-size:16px">
       <button class="btn block" id="send" style="margin-top:12px">Send magic link</button><div id="msg" class="page-sub" style="margin-top:12px"></div></div></div>`;
@@ -83,6 +83,10 @@
         <div class="hero-card" data-go="${hero.id}"><img src="${img(hero.seed,800,500)}" alt=""><div class="veil"></div>
           <div class="meta"><div class="pills"><span>${hero.min} min</span><span>${hero.level}</span><span>Today's session</span></div>
           <div class="title">${esc(hero.title)}</div></div><button class="play">▶</button></div>
+        <a class="pdfcard" href="assets/tai-chi-walking.pdf" download="Tai-Chi-Walking.pdf">
+          <span class="pc-ic">🎁</span>
+          <span class="pc-txt"><span class="pc-t">Download Free PDF: Tai Chi Walking</span><span class="pc-s">Click here to download</span></span>
+          <span class="pc-dl">⬇</span></a>
         <div class="card"><div class="section-title" style="margin:0 0 6px"><h2>Today's tasks</h2><span style="color:var(--muted);font-weight:700">${tdone}/${C.tasks.length}</span></div>${tasksHtml}</div>
       </div><div class="col">
         <div class="card mini"><div><div style="font-weight:700">Weight</div><div class="v">${ST.latest.weight??"—"} <small>kg</small></div></div><a class="btn ghost" href="#/track/weight">Log</a></div>
@@ -158,14 +162,27 @@
     const tabs = `<div class="tabs"><button data-t="today" class="${tab==='today'?'on':''}">Today's plan</button><button data-t="library" class="${tab==='library'?'on':''}">Library</button></div>`;
     let body;
     if (tab === "today") {
-      const order = ["breakfast", "lunch", "snack", "dinner"];
-      const doneMap = DB.dayGet("meals");
-      const todays = order.map(t => recipes.find(r => r.meal_type === t)).filter(Boolean);
-      const dn = todays.filter(r => doneMap[r.id]).length;
-      body = `<div class="plan-prog"><span>Today's meals</span><span>${dn}/${todays.length}</span></div><div class="pbar"><i style="width:${todays.length?Math.round(dn/todays.length*100):0}%"></i></div>` +
-        todays.map(r => `<div class="meal-row" data-id="${r.id}"><img src="${img(r.image_seed,200,150)}" alt="">
-          <div class="mt"><span class="badge beg">${esc(r.meal_type)}</span><div class="n">${esc(r.title)}</div><div class="s">${r.minutes} min · ${r.kcal} kcal</div></div>
-          <button class="chk ${doneMap[r.id]?'on':''}" data-done="${r.id}">${doneMap[r.id]?'✓':''}</button></div>`).join("");
+      const slots = ["breakfast", "lunch", "snack", "dinner"];
+      const plan = DB.dayGet("mealplan"); // { slot: {id, status} }
+      const rows = slots.map(slot => {
+        const cands = recipes.filter(r => r.meal_type === slot).sort((a, b) => (a.kcal || 0) - (b.kcal || 0));
+        if (!cands.length) return null;
+        const st = plan[slot];
+        const r = (st && cands.find(x => x.id === st.id)) || cands[0];
+        return { slot, r, status: (st && st.status) || "pending" };
+      }).filter(Boolean);
+      const dn = rows.filter(x => x.status === "done").length;
+      body = `<div class="plan-prog"><span>Today's meals</span><span>${dn}/${rows.length}</span></div><div class="pbar"><i style="width:${rows.length?Math.round(dn/rows.length*100):0}%"></i></div>` +
+        rows.map(x => {
+          const r = x.r;
+          const footer = x.status === "done"
+            ? `<div class="mc-state done" data-slot="${x.slot}" data-act="reset">✓ Completed</div>`
+            : x.status === "skipped"
+            ? `<div class="mc-state skip" data-slot="${x.slot}" data-act="reset">▷ Skipped</div>`
+            : `<div class="mc-actions"><button data-slot="${x.slot}" data-act="done">✓ Done</button><button data-slot="${x.slot}" data-act="change">⟳ Change</button><button data-slot="${x.slot}" data-act="skip">▷ Skip</button></div>`;
+          return `<div class="meal-card" data-id="${r.id}"><div class="mc-top"><img src="${img(r.image_seed,240,180)}" alt="">
+            <div class="mc-body"><span class="badge beg">${esc(r.meal_type)}</span><div class="n">${esc(r.title)}</div><div class="s">${r.minutes} min · ${r.kcal} kcal</div></div></div>${footer}</div>`;
+        }).join("");
     } else {
       body = `<div class="meal-tools"><input id="mealSearch" class="meal-search" type="search" placeholder="Search recipes or ingredients…" value="${esc(_mealQ)}"><div class="chips" id="mealCats">${["all","breakfast","lunch","dinner","snack"].map(c=>`<button data-c="${c}" class="chip ${_mealCat===c?'on':''}">${c==='all'?'All':c.charAt(0).toUpperCase()+c.slice(1)}</button>`).join("")}</div></div><div id="mealResults"></div>`;
     }
@@ -190,8 +207,23 @@
       search.oninput = () => { _mealQ = search.value; doRender(); };
       view.querySelectorAll("#mealCats .chip").forEach(b => b.onclick = () => { _mealCat = b.dataset.c; view.querySelectorAll("#mealCats .chip").forEach(x => x.classList.toggle("on", x === b)); doRender(); });
     }
-    view.querySelectorAll(".meal-row, .meal").forEach(el => el.onclick = (e) => { if (e.target.closest(".chk")) return; location.hash = "#/recipe/" + el.dataset.id; });
-    view.querySelectorAll(".chk[data-done]").forEach(c => c.onclick = (e) => { e.stopPropagation(); DB.dayToggle("meals", c.dataset.done); vMeals("today"); });
+    view.querySelectorAll(".meal-card .mc-top").forEach(el => el.onclick = () => location.hash = "#/recipe/" + el.closest(".meal-card").dataset.id);
+    view.querySelectorAll(".mc-actions button, .mc-state[data-slot]").forEach(b => b.onclick = (e) => {
+      e.stopPropagation();
+      const slot = b.dataset.slot, act = b.dataset.act;
+      const plan = DB.dayGet("mealplan");
+      const cands = recipes.filter(r => r.meal_type === slot).sort((a, c) => (a.kcal || 0) - (c.kcal || 0));
+      if (!cands.length) return;
+      let cur = plan[slot] || { id: cands[0].id, status: "pending" };
+      if (act === "done") cur.status = "done";
+      else if (act === "skip") cur.status = "skipped";
+      else if (act === "reset") cur.status = "pending";
+      else if (act === "change") {
+        const idx = Math.max(0, cands.findIndex(r => r.id === cur.id));
+        cur = { id: cands[(idx + 1) % cands.length].id, status: "pending" };
+      }
+      plan[slot] = cur; DB.daySet("mealplan", plan); vMeals("today");
+    });
   }
   async function vRecipe(id) {
     const recipes = _recipes || (_recipes = await DB.recipes());
@@ -288,15 +320,26 @@
     view.querySelectorAll(".fav").forEach(f => f.onclick = async (e) => { e.stopPropagation(); const on = !ST.favorites[f.dataset.id]; if (on) ST.favorites[f.dataset.id] = true; else delete ST.favorites[f.dataset.id]; await DB.toggleFav(f.dataset.id, on, "media"); vStress(tab); });
   }
 
-  function vFavorites() {
+  async function vFavorites() {
     const ids = Object.keys(ST.favorites);
-    const all = [...DATA.workouts, ...Object.values(DATA.stress).flat()];
-    const items = all.filter(x => ids.includes(x.id));
-    view.innerHTML = `<h1 class="page">Favorites</h1>` + (items.length
-      ? `<div class="grid-cards">${items.map(x => x.cat ? wcard(x) : `<div class="wcard"><div class="thumb"><img src="${img(x.seed,400,260)}"><button class="fav" data-id="${x.id}">♥</button></div><div class="body"><div class="t">${esc(x.title)}</div><div class="m">${x.min} min</div></div></div>`).join("")}</div>`
-      : `<div class="soon"><div class="big">♡</div><p>No favorites yet. Tap the heart on any session to save it here.</p></div>`);
-    view.querySelectorAll(".wcard[data-id]").forEach(c => { if (DATA.workouts.find(w=>w.id===c.dataset.id)) c.onclick = (e)=>{ if(e.target.closest(".fav"))return; location.hash="#/workout/"+c.dataset.id; }; });
-    view.querySelectorAll(".fav").forEach(f => f.onclick = async (e) => { e.stopPropagation(); delete ST.favorites[f.dataset.id]; await DB.toggleFav(f.dataset.id, false); vFavorites(); });
+    if (!ids.length) {
+      view.innerHTML = `<h1 class="page">Favorites</h1><div class="soon"><div class="big">♡</div><p>No favorites yet. Tap the heart on any workout, meal or session to save it here.</p></div>`;
+      return;
+    }
+    const recipes = _recipes || (_recipes = await DB.recipes());
+    const workouts = DATA.workouts.filter(x => ids.includes(x.id));
+    const media = Object.values(DATA.stress).flat().filter(x => ids.includes(x.id));
+    const meals = recipes.filter(x => ids.includes(x.id));
+    const mediaCard = x => `<div class="wcard" data-media="${x.id}"><div class="thumb"><img src="${img(x.seed,400,260)}"><button class="fav" data-id="${x.id}" data-type="media">♥</button></div><div class="body"><div class="t">${esc(x.title)}</div><div class="m">${x.min} min</div></div></div>`;
+    const mealCard = x => `<div class="wcard meal" data-recipe="${x.id}"><div class="thumb"><img src="${img(x.image_seed,400,260)}"><button class="fav" data-id="${x.id}" data-type="recipe">♥</button></div><div class="body"><div class="t">${esc(x.title)}</div><div class="m">${x.minutes} min · ${x.kcal} kcal</div></div></div>`;
+    const section = (title, html) => html ? `<div class="section-title"><h2>${title}</h2></div><div class="grid-cards">${html}</div>` : "";
+    view.innerHTML = `<h1 class="page">Favorites</h1>`
+      + section("Workouts", workouts.map(wcard).join(""))
+      + section("Meals", meals.map(mealCard).join(""))
+      + section("Stress release", media.map(mediaCard).join(""));
+    view.querySelectorAll(".wcard[data-id]").forEach(c => { if (workouts.find(w => w.id === c.dataset.id)) c.onclick = (e) => { if (e.target.closest(".fav")) return; location.hash = "#/workout/" + c.dataset.id; }; });
+    view.querySelectorAll(".wcard[data-recipe]").forEach(c => c.onclick = (e) => { if (e.target.closest(".fav")) return; location.hash = "#/recipe/" + c.dataset.recipe; });
+    view.querySelectorAll(".fav").forEach(f => f.onclick = async (e) => { e.stopPropagation(); delete ST.favorites[f.dataset.id]; await DB.toggleFav(f.dataset.id, false, f.dataset.type || "session"); vFavorites(); });
   }
 
   // ---------- Profile / settings ----------

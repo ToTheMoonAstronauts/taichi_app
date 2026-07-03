@@ -101,5 +101,6 @@ window.DB = (function () {
     // per-day UI state (tasks + plan checklist)
     dayGet(k) { try { return JSON.parse(localStorage.getItem(dayKey(k))) || {}; } catch { return {}; } },
     dayToggle(k, id) { const o = this.dayGet(k); o[id] ? delete o[id] : (o[id] = true); localStorage.setItem(dayKey(k), JSON.stringify(o)); return o; },
+    daySet(k, obj) { localStorage.setItem(dayKey(k), JSON.stringify(obj)); return obj; },
   };
 })();
