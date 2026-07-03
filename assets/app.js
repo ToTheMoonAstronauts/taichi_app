@@ -145,6 +145,7 @@
         ${homeCaloriesCard()}
         <div class="card mini"><div><div style="font-weight:700">Weight</div><div class="v">${ST.latest.weight??"—"} <small>kg</small></div></div><a class="btn ghost" href="#/track/weight">Log</a></div>
         <div class="card mini"><div><div style="font-weight:700">Water</div><div class="v">${ST.latest.water??0} <small>glasses</small></div></div><a class="btn ghost" href="#/track/water">Log</a></div>
+        <div class="card mini"><div><div style="font-weight:700">Balance</div><div class="v">${ST.latest.balance??"—"} <small>/10</small></div></div><a class="btn ghost" href="#/track/balance">Log</a></div>
         <div class="card mini"><div><div style="font-weight:700">Self-assessment</div><div class="v" style="font-size:14px;color:var(--muted)">${selfSub}</div></div><a class="btn ghost" href="#/track/mood">Log</a></div>
         <div class="card mini"><div><div style="font-weight:700">Fasting</div><div class="v" style="font-size:14px;color:var(--muted)">${fastSub}</div></div><a class="btn ghost" href="#/track/fasting">Open</a></div>
       </div></div>`;
@@ -739,6 +740,9 @@
   function trendSvg(hist, target) {
     const pts = hist.slice(0, 12).map(h => parseFloat(h.value)).filter(n => !isNaN(n)).reverse();
     if (pts.length < 2) return "";
+    const imp = PROFILE && PROFILE.measurement_system === "imperial";
+    const U = imp ? "lb" : "kg";
+    const cvW = v => imp ? Math.round(v * 2.20462 * 10) / 10 : Math.round(v * 10) / 10;
     const W = 300, H = 110, pad = 8;
     let lo = Math.min(...pts, target || Infinity), hi = Math.max(...pts, target || -Infinity);
     if (lo === hi) { lo -= 1; hi += 1; } const range = hi - lo;
@@ -752,7 +756,7 @@
       <path d="${d}" fill="none" stroke="#bf7350" stroke-width="2.5"/>
       <circle cx="${x(0).toFixed(1)}" cy="${y(pts[0]).toFixed(1)}" r="4" fill="#bf7350"/>
       <circle cx="${x(pts.length-1).toFixed(1)}" cy="${y(pts[pts.length-1]).toFixed(1)}" r="4" fill="#bf7350"/>
-    </svg><div class="chartlabels"><span>${pts[0]}</span><span>Target ${target||"—"}</span><span>${pts[pts.length-1]}</span></div>`;
+    </svg><div class="chartlabels"><span>Previous: ${cvW(pts[0])} ${U}</span><span>Target ${target>0?cvW(target)+" "+U:"—"}</span><span>Last: ${cvW(pts[pts.length-1])} ${U}</span></div>`;
   }
 
   function vStress(tab) {
