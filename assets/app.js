@@ -7,7 +7,7 @@
   const el = (h) => { const d = document.createElement("div"); d.innerHTML = h; return d; };
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const lv = (l) => l === "Advanced" ? "adv" : l === "Intermediate" ? "int" : "beg";
-  const img = (seed, w, h) => `https://picsum.photos/seed/${encodeURIComponent("ctc-" + seed)}/${w}/${h}`;
+  const img = (seed, w, h) => /^https?:/.test(seed) ? `${seed}?w=${w}&h=${h}&fit=crop&crop=entropy&q=70&auto=format` : `https://picsum.photos/seed/${encodeURIComponent("ctc-" + seed)}/${w}/${h}`;
 
   let DATA = null, ST = null, PROFILE = null;
 
