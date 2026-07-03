@@ -192,22 +192,32 @@
   const CAP = s => s.charAt(0).toUpperCase() + s.slice(1);
 
   function recipeById(id) { return (_recipes || []).find(r => r.id === id); }
-  function curWeightKg() { const w = parseFloat(ST.latest.weight); return w > 0 ? w : null; }
+  // current weight: logged check-in first, else the value from their quiz
+  function curWeightKg() {
+    const w = parseFloat(ST.latest.weight); if (w > 0) return w;
+    const q = parseFloat(PROFILE && PROFILE.quiz_weight_kg); return q > 0 ? q : null;
+  }
 
   async function ensureWeek(force) {
     const ws = PLAN.weekStartOf(new Date());
     const startISO = PLAN.isoDate(ws), endISO = PLAN.isoDate(PLAN.addDays(ws, 6));
+    let hadExisting = false;
     if (!force) {
       const existing = await DB.getPlanItems(startISO, endISO);
       if (existing.length) {
+        hadExisting = true;
         const run = await DB.getPlanRun(startISO);
-        const items = {}; existing.forEach(it => items[it.plan_date + "|" + it.meal_type] = it);
-        return { startISO, endISO, items, targets: run ? { daily: run.daily_kcal, split: run.split || {}, basis: run.start_weight_kg ? "personalized" : "default", goal: run.goal_weight_kg } : { daily: null, split: {}, basis: "default" } };
+        const placeholder = !run || run.start_weight_kg == null;
+        // If the plan was a non-personalized placeholder and we now know a weight, upgrade it.
+        if (!(placeholder && curWeightKg() != null)) {
+          const items = {}; existing.forEach(it => items[it.plan_date + "|" + it.meal_type] = it);
+          return { startISO, endISO, items, targets: run ? { daily: run.daily_kcal, split: run.split || {}, basis: run.start_weight_kg ? "personalized" : "default", goal: run.goal_weight_kg } : { daily: null, split: {}, basis: "default" } };
+        }
       }
     }
     const t = PLAN.targets(PROFILE, curWeightKg());
     const gen = PLAN.generateWeek(_recipes, t.split, ws, PROFILE.id || "seed");
-    if (force) await DB.deletePlanWeek(startISO, endISO);
+    if (force || hadExisting) await DB.deletePlanWeek(startISO, endISO);
     await DB.savePlanRun({ week_start: startISO, start_weight_kg: curWeightKg(), goal_weight_kg: PROFILE.target_weight_kg || null,
       gender: t.gender, age: t.age, height_cm: t.height, activity: 1.35, daily_kcal: t.daily, split: t.split });
     await DB.savePlanItems(gen);
@@ -259,8 +269,13 @@
       const goalTxt = t.goal ? ` &middot; goal ${(+t.goal).toFixed(0)} kg` : "";
       const targetLine = t.daily ? `Daily target ~${t.daily} kcal${goalTxt}` : "Set your details to personalize";
       const needs = (t.missing || []).filter(m => m === "weight" || m === "height");
-      const note = (t.basis === "default" || needs.length)
-        ? `<div class="plan-note">Add your ${needs.length?needs.join(" and "):"current weight and height"} in <a href="#/profile">Profile</a> to personalize this plan for weight loss.</div>` : "";
+      let note = "";
+      if (needs.length) {
+        const parts = [];
+        if (needs.includes("weight")) parts.push(`log your current weight in <a href="#/track/weight">Tracking</a>`);
+        if (needs.includes("height")) parts.push(`add your height in <a href="#/profile">Profile</a>`);
+        note = `<div class="plan-note">To personalize this plan for weight loss, ${parts.join(" and ")}.</div>`;
+      }
       const strip = Array.from({ length: 7 }, (_, i) => PLAN.isoDate(PLAN.addDays(new Date(_week.startISO + "T00:00:00"), i))).map(d => {
         const dt = new Date(d + "T00:00:00"); const c = dayCount(d);
         return `<button class="daychip ${d===_selDay?'on':''} ${d===today?'today':''}" data-day="${d}">
