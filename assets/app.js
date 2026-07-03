@@ -217,7 +217,7 @@
     const w = DATA.workouts.find(x => x.id === id); if (!w) return notFound();
     const done = !!ST.completed[id], fav = !!ST.favorites[id];
     const steps = w.steps || [];
-    if (w.cat === "Tai Chi Walking") return vWalkWorkout(w, id, done, fav, steps);
+    if (steps.some(s => s.video || s.img)) return vAccWorkout(w, id, done, fav, steps);
     const stepsHtml = steps.length ? `<div class="section-title"><h2>Workouts</h2><span style="color:var(--muted);font-weight:700">${steps.length}</span></div>
       <div class="card listcard">${steps.map((s, i) => `<div class="lrow"><span class="lnum">${String(i+1).padStart(2,"0")}</span>
         <span class="ltext"><span class="lt">${esc(s.t)}</span><span class="ls"><span class="badge ${lv(s.lvl)}">${esc(s.lvl||"Beginner")}</span> · ${s.min||""} min</span></span><span class="chev">›</span></div>`).join("")}</div>` : "";
@@ -233,24 +233,30 @@
     view.querySelector("#favBtn").onclick = async () => { const on = !ST.favorites[id]; if (on) ST.favorites[id] = true; else delete ST.favorites[id]; await DB.toggleFav(id, on); vWorkout(id); };
   }
 
-  function vWalkWorkout(w, id, done, fav, steps) {
-    const day = walkDay(w);
-    const items = steps.map((s, i) => `<div class="wacc-item${i === 0 ? " open" : ""}">
+  function vAccWorkout(w, id, done, fav, steps) {
+    const isWalk = w.cat === "Tai Chi Walking";
+    const day = isWalk ? walkDay(w) : 0;
+    const items = steps.map((s, i) => {
+      let body;
+      if (s.video) body = `<div class="wacc-video"><video controls playsinline preload="metadata"><source src="${s.video}" type="video/mp4"></video></div>${s.desc ? `<p class="wacc-desc below">${esc(s.desc)}</p>` : ""}`;
+      else if (s.img) body = `<div class="wacc-2col"><div class="wacc-img"><img src="${s.img}" alt="${esc(s.t)}"></div><p class="wacc-desc">${esc(s.desc || "")}</p></div>`;
+      else body = `<p class="wacc-desc below">${esc(s.desc || "")}</p>`;
+      return `<div class="wacc-item${i === 0 ? " open" : ""}">
         <button class="wacc-head" data-i="${i}">
           <span class="lnum">${String(i + 1).padStart(2, "0")}</span>
-          <span class="ltext"><span class="lt">${esc(s.t)}</span><span class="ls"><span class="badge ${lv(s.lvl)}">${esc(s.lvl || "Beginner")}</span> · ${s.min || ""} min</span></span>
+          <span class="ltext"><span class="lt">${esc(s.t)}</span><span class="ls"><span class="badge ${lv(s.lvl)}">${esc(s.lvl || "Beginner")}</span>${s.min ? ` · ${s.min} min` : ""}</span></span>
           <span class="wacc-chev">›</span></button>
-        <div class="wacc-body">
-          <div class="wacc-img">${s.img ? `<img src="${s.img}" alt="${esc(s.t)}">` : ""}</div>
-          <p class="wacc-desc">${esc(s.desc || "")}</p></div>
-      </div>`).join("");
+        <div class="wacc-body">${body}</div>
+      </div>`;
+    }).join("");
     view.innerHTML = `<button class="backlink" onclick="history.back()">‹ Back</button>
       <div class="wk-head"><span class="badge ${lv(w.level)}">${w.level}</span><h1 class="page wk-title">${esc(w.title)}</h1><button class="favico" id="favBtn" title="Save">${fav?"♥":"♡"}</button></div>
-      <p class="page-sub">Day ${day} · ${w.min} min · ${steps.length} moves</p>
+      <p class="page-sub">${isWalk ? `Day ${day} · ` : ""}${w.min} min · ${steps.length} moves</p>
       <div class="wacc">${items}</div>
-      <div class="cta-fixed"><button class="btn block" id="markDone">${done ? "✓ Completed — do it again" : `▶ Start Day ${day}`}</button></div>`;
+      <div class="cta-fixed"><button class="btn block" id="markDone">${done ? "✓ Completed — do it again" : (isWalk ? `▶ Start Day ${day}` : "▶ Start session")}</button></div>`;
     view.querySelectorAll(".wacc-head").forEach(b => b.onclick = () => {
       const item = b.closest(".wacc-item"), wasOpen = item.classList.contains("open");
+      view.querySelectorAll("video").forEach(v => v.pause());
       view.querySelectorAll(".wacc-item").forEach(x => x.classList.remove("open"));
       if (!wasOpen) item.classList.add("open");
     });

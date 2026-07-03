@@ -414,12 +414,15 @@ h1.page{font-family:var(--serif);font-size:29px;font-weight:600;letter-spacing:-
 .wacc-chev{color:var(--muted);font-size:20px;flex:none;transition:transform .18s}
 .wacc-item.open .wacc-chev{transform:rotate(90deg)}
 .wacc-body{display:none;border-top:1px solid var(--line);padding:18px}
-.wacc-item.open .wacc-body{display:grid;grid-template-columns:200px 1fr;gap:22px;align-items:center}
+.wacc-item.open .wacc-body{display:block}
+.wacc-2col{display:grid;grid-template-columns:200px 1fr;gap:22px;align-items:center}
+.wacc-video video{width:100%;height:auto;display:block;border-radius:12px;background:#000}
+.wacc-desc.below{margin-top:14px}
 .wacc-img{background:linear-gradient(135deg,#eef2ee,#f4ede5);border-radius:12px;height:200px;display:flex;align-items:center;justify-content:center;flex:none}
 .wacc-img img{width:190px;height:190px;object-fit:contain;display:block}
 .wacc-desc{margin:0;color:#4a3f34;line-height:1.55;font-size:16px}
 @media(max-width:640px){
-  .wacc-item.open .wacc-body{grid-template-columns:1fr;justify-items:center;text-align:center}
+  .wacc-2col{grid-template-columns:1fr;justify-items:center;text-align:center}
   .wacc-img{height:auto;padding:14px;width:100%}
   .wacc-desc{text-align:left}
 }
