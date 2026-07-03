@@ -164,6 +164,8 @@
   let _week = null;         // { startISO, endISO, items:{'date|slot':item}, targets }
   let _selDay = null;       // ISO date currently selected
   let _planSub = "meals";   // meals | nutrition | groceries
+  let _grocDays = null;     // Set of ISO dates included in the grocery list
+  let _grocTick = {};       // { ingredientName: true } ticked-off items (localStorage per week)
   let _recipeCtx = null;    // { recipe, date, slot } — set when opening a recipe from the plan
   const FIBER_GOAL = { male: 30, female: 25, unknown: 25 };
   const round1 = x => Math.round(x * 10) / 10;
@@ -196,6 +198,90 @@
   }
   const SLOTS = ["breakfast", "lunch", "dinner", "snack"];
   const CAP = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+  // ---------- Groceries (smart aggregation) ----------
+  function parseQty(str) {
+    const m = str.trim().match(/^(\d+\s+\d+\/\d+|\d+\/\d+|\d+(?:\.\d+)?)/);
+    if (!m) return null;
+    const t = m[1];
+    if (/\s/.test(t)) { const [a, f] = t.split(/\s+/); const [n, d] = f.split("/"); return +a + (+n) / (+d); }
+    if (t.includes("/")) { const [n, d] = t.split("/"); return (+n) / (+d); }
+    return parseFloat(t);
+  }
+  const GUNITS_RE = /\b(cups?|tbsp|tablespoons?|tsp|teaspoons?|oz|ounces?|lb|pounds?|g|kg|ml|l|cloves?|slices?|cans?|pinch|handful|sprigs?|stalks?|scoops?|links?|squares?|medium|large|small|pint|whole)\b/gi;
+  const GSTOP = new Set("of to taste cut into inch inches pieces piece room temperature at for serving plus more about each or a an the chopped sliced diced minced shredded crumbled drained boneless skinless thinly fresh frozen canned roasted grilled baked trimmed halved peeled cubed toasted rinsed divided packed shelled seeded stemmed torn beaten softened overnight raw cooked ground grated extra virgin low fat nonfat plain unsweetened whole dried juice zest and light coarse kosher sea ripe wheat".split(" "));
+  function singular(w) {
+    if (/(ss|us|is)$/.test(w)) return w;
+    if (w.endsWith("ies")) return w.slice(0, -3) + "y";
+    if (/(oes|ses|shes|ches|xes)$/.test(w)) return w.slice(0, -2);
+    if (w.endsWith("s")) return w.slice(0, -1);
+    return w;
+  }
+  function cleanIngName(str) {
+    let s = str.toLowerCase().replace(/\([^)]*\)/g, " ").replace(/[\d/.]+/g, " ").replace(/[,;.]/g, " ").replace(/-/g, " ").replace(GUNITS_RE, " ");
+    const w = s.split(/\s+/).filter(x => x && !GSTOP.has(x));
+    if (w.length) w[w.length - 1] = singular(w[w.length - 1]);   // singularize head noun so "egg"/"eggs" group
+    return w.join(" ").trim();
+  }
+  function normUnit(u) { u = u.toLowerCase();
+    if (u.startsWith("cup")) return "cup"; if (u.startsWith("tbsp") || u.startsWith("tablespoon")) return "tbsp";
+    if (u.startsWith("tsp") || u.startsWith("teaspoon")) return "tsp"; if (u.startsWith("oz") || u.startsWith("ounce")) return "oz";
+    if (u.startsWith("lb") || u.startsWith("pound")) return "lb"; if (u.startsWith("clove")) return "clove";
+    if (u.startsWith("slice")) return "slice"; if (u.startsWith("can")) return "can"; return u; }
+  function parseAmount(str) {
+    const low = str.toLowerCase();
+    if (/to taste|for serving|to serve|for garnish/.test(low)) return { basis: "taste", qty: 0 };
+    const par = str.match(/\((\d+(?:\.\d+)?)\s*(g|ml|kg|l)\)/i);
+    if (par) { let v = parseFloat(par[1]); const u = par[2].toLowerCase();
+      if (u === "kg") return { basis: "g", qty: v * 1000 }; if (u === "g") return { basis: "g", qty: v };
+      if (u === "l") return { basis: "ml", qty: v * 1000 }; if (u === "ml") return { basis: "ml", qty: v }; }
+    const q = parseQty(str);
+    const um = low.match(/^[\s\d/.]*\b(cups?|tbsp|tablespoons?|tsp|teaspoons?|oz|ounces?|lb|pounds?|cloves?|slices?|cans?)\b/);
+    if (um) return { basis: normUnit(um[1]), qty: q || 1 };
+    if (q != null) return { basis: "count", qty: q };
+    return { basis: "taste", qty: 0 };
+  }
+  const trimNum = n => (Math.round(n * 100) / 100).toString();
+  function pluralize(name, n) { if (n <= 1) return name; if (/(s|x|sh|ch)$/.test(name)) return name + "es"; if (/[^aeiou]y$/.test(name)) return name.slice(0, -1) + "ies"; return name + "s"; }
+  function fmtLine(g) {
+    const b = g.buckets, parts = [];
+    if (b.g != null) parts.push(b.g >= 1000 ? (b.g / 1000).toFixed(b.g % 1000 ? 1 : 0).replace(/\.0$/, "") + " kg" : Math.round(b.g) + " g");
+    if (b.ml != null) parts.push(b.ml >= 1000 ? (b.ml / 1000).toFixed(b.ml % 1000 ? 1 : 0).replace(/\.0$/, "") + " L" : Math.round(b.ml) + " ml");
+    ["cup", "tbsp", "tsp", "oz", "lb", "clove", "slice", "can"].forEach(u => { if (b[u] != null) { const n = +trimNum(b[u]); parts.push(n + " " + (n > 1 && ["clove","slice","can","cup"].includes(u) ? u + "s" : u)); } });
+    if (b.count != null) { const n = +trimNum(b.count); return { amt: String(n), name: pluralize(g.name, n) }; }
+    if (!parts.length && g.taste) return { amt: "", name: g.name + " · to taste" };
+    return { amt: parts.join(" + "), name: g.name };
+  }
+  function buildGroceries(dates) {
+    const map = {};
+    dates.forEach(d => SLOTS.forEach(slot => {
+      const it = _week.items[d + "|" + slot]; if (!it) return;
+      const r = recipeById(it.recipe_id); if (!r) return;
+      (r.ingredients || []).forEach(ing => {
+        const name = cleanIngName(ing); if (!name) return;
+        const a = parseAmount(ing);
+        const m = map[name] || (map[name] = { name, buckets: {}, taste: false });
+        if (a.basis === "taste") m.taste = true;
+        else m.buckets[a.basis] = (m.buckets[a.basis] || 0) + a.qty;
+      });
+    }));
+    return Object.values(map).sort((a, b) => a.name.localeCompare(b.name));
+  }
+  function weekDates() { return Array.from({ length: 7 }, (_, i) => PLAN.isoDate(PLAN.addDays(new Date(_week.startISO + "T00:00:00"), i))); }
+  function groceriesHtml() {
+    const wd = weekDates();
+    if (!_grocDays || ![..._grocDays].every(d => wd.includes(d))) _grocDays = new Set(wd);
+    try { _grocTick = JSON.parse(localStorage.getItem("groc_" + _week.startISO) || "{}"); } catch (e) { _grocTick = {}; }
+    const chips = wd.map(d => { const dt = new Date(d + "T00:00:00"); const on = _grocDays.has(d);
+      return `<button class="groc-day ${on?'on':''}" data-day="${d}"><span class="gd-check">${on?'✓':''}</span>${dt.toLocaleDateString(undefined,{weekday:'short'})} ${dt.getDate()}</button>`; }).join("");
+    const list = buildGroceries([..._grocDays].sort());
+    const items = list.length ? list.map(g => { const f = fmtLine(g), tk = !!_grocTick[g.name];
+      return `<label class="groc-item ${tk?'got':''}"><input type="checkbox" data-name="${esc(g.name)}" ${tk?'checked':''}><span class="gi-amt">${esc(f.amt)}</span><span class="gi-name">${esc(f.name)}</span></label>`; }).join("")
+      : `<p class="page-sub">Select at least one day to build your list.</p>`;
+    return `<div class="groc"><div class="groc-lbl">Include days</div><div class="groc-days">${chips}</div>
+      ${list.length ? `<div class="groc-count">${list.length} item${list.length===1?'':'s'} across ${_grocDays.size} day${_grocDays.size===1?'':'s'}</div>` : ""}
+      <div class="groc-list">${items}</div></div>`;
+  }
 
   function recipeById(id) { return (_recipes || []).find(r => r.id === id); }
   // current weight: logged check-in first, else the value from their quiz
@@ -303,7 +389,7 @@
       const dayLabel = selDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
       let subHtml;
       if (_planSub === "nutrition") subHtml = `<h2 class="today-h">${dayLabel}</h2>${nutritionHtml(_selDay, t.daily)}`;
-      else if (_planSub === "groceries") subHtml = `<div class="soon"><div class="big">&#128722;</div><p>Auto-built grocery lists from your week are coming soon.</p></div>`;
+      else if (_planSub === "groceries") subHtml = groceriesHtml();
       else subHtml = `<h2 class="today-h">${dayLabel}</h2>${rows}`;
       const subBtn = (s, label) => `<button class="${_planSub===s?'on':''}" data-s="${s}">${label}</button>`;
       view.innerHTML = `<div class="mealhdr"><h1 class="page" style="margin:0">Meal plan</h1><button class="regen" id="regen">&#8635; Regenerate</button></div>
@@ -321,6 +407,14 @@
       };
       view.querySelectorAll(".daychip").forEach(b => b.onclick = () => { _selDay = b.dataset.day; renderPlan(); });
       view.querySelectorAll(".subtabs button").forEach(b => b.onclick = () => { _planSub = b.dataset.s; renderPlan(); });
+      if (_planSub === "groceries") {
+        view.querySelectorAll(".groc-day").forEach(b => b.onclick = () => { const d = b.dataset.day; _grocDays.has(d) ? _grocDays.delete(d) : _grocDays.add(d); renderPlan(); });
+        view.querySelectorAll(".groc-item input").forEach(cb => cb.onchange = () => {
+          const n = cb.dataset.name; if (cb.checked) _grocTick[n] = true; else delete _grocTick[n];
+          localStorage.setItem("groc_" + _week.startISO, JSON.stringify(_grocTick));
+          cb.closest(".groc-item").classList.toggle("got", cb.checked);
+        });
+      }
       if (_planSub === "meals") {
         view.querySelectorAll(".meal-card .mc-top").forEach(el => el.onclick = () => { const c = el.closest(".meal-card"); _recipeCtx = { recipe: c.dataset.id, date: _selDay, slot: c.dataset.slot }; location.hash = "#/recipe/" + c.dataset.id; });
         view.querySelectorAll(".mc-actions button, .mc-state[data-slot]").forEach(b => b.onclick = async (e) => {

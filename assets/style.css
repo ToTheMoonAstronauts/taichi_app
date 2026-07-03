@@ -323,3 +323,18 @@ h1.page{font-family:var(--serif);font-size:29px;font-weight:600;letter-spacing:-
   border-radius:14px;padding:12px 16px;color:var(--muted);font-weight:600;font-size:15px;opacity:.9;cursor:default}
 .coming-chip .cc-tag{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
   background:var(--primary-soft);color:var(--primary-dark);border-radius:20px;padding:2px 9px}
+
+/* Groceries */
+.groc-lbl{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin:2px 0 8px}
+.groc-days{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.groc-day{display:inline-flex;align-items:center;gap:7px;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:8px 12px;cursor:pointer;font-weight:600;font-size:13px;color:var(--ink)}
+.groc-day.on{background:var(--primary-soft);border-color:var(--primary)}
+.groc-day .gd-check{width:16px;height:16px;border-radius:5px;border:2px solid var(--line);display:grid;place-items:center;color:#fff;font-size:11px;flex:none}
+.groc-day.on .gd-check{background:var(--primary);border-color:var(--primary)}
+.groc-count{color:var(--muted);font-size:13px;margin-bottom:10px}
+.groc-list{display:flex;flex-direction:column;gap:8px}
+.groc-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card);border-radius:12px;box-shadow:var(--shadow);cursor:pointer}
+.groc-item input{width:20px;height:20px;accent-color:var(--primary);flex:none;cursor:pointer}
+.groc-item .gi-amt{font-weight:700;min-width:70px;color:var(--primary-dark);font-size:14px}
+.groc-item .gi-name{flex:1;text-transform:capitalize}
+.groc-item.got .gi-name,.groc-item.got .gi-amt{color:var(--muted);text-decoration:line-through}
