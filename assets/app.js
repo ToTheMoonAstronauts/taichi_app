@@ -156,7 +156,8 @@
         <div class="card mini"><div><div style="font-weight:700">Balance</div><div class="v">${ST.latest.balance??"—"} <small>/10</small></div></div><a class="btn ghost" href="#/track/balance">Log</a></div>
         <div class="card mini"><div><div style="font-weight:700">Self-assessment</div><div class="v" style="font-size:14px;color:var(--muted)">${selfSub}</div></div><a class="btn ghost" href="#/track/mood">Log</a></div>
         <div class="card mini"><div><div style="font-weight:700">Fasting</div><div class="v" style="font-size:14px;color:var(--muted)">${fastSub}</div></div><a class="btn ghost" href="#/track/fasting">Open</a></div>
-      </div></div>`;
+      </div></div>
+      <a class="home-settings" href="#/profile"><span class="hs-ic">⚙️</span><span class="hs-txt"><b>Settings</b><small>Profile, units, palette &amp; more</small></span><span class="hs-ch">›</span></a>`;
     view.querySelector(".hero-card").onclick = () => location.hash = "#/workout/" + hero.id;
     view.querySelectorAll("[data-mact]").forEach(b => b.onclick = async (e) => {
       e.preventDefault();
@@ -906,6 +907,7 @@
     const p = PROFILE || {};
     const units = p.measurement_system || "metric";
     const impU = units === "imperial";
+    const isGreen = (window.TM ? TM.get() : (document.documentElement.getAttribute("data-theme") || "brown")) === "green";
     let hFt = "", hIn = "";
     if (impU && p.height_cm) { const ti = Math.round(p.height_cm / 2.54); hFt = Math.floor(ti / 12); hIn = ti % 12; }
     view.innerHTML = `
@@ -930,6 +932,14 @@
       <div class="card" style="margin-top:16px">
         <div class="sec-label">MEASUREMENT SYSTEM</div>
         <div class="seg"><button data-u="metric" class="${units==='metric'?'on':''}">Metric</button><button data-u="imperial" class="${units==='imperial'?'on':''}">Imperial</button></div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="sec-label">APPEARANCE</div>
+        <div class="row-toggle">
+          <div><div style="font-weight:700">Mint palette</div><div class="page-sub" style="margin:2px 0 0">Switch from the default warm theme to a calm green look.</div></div>
+          <button class="tgl ${isGreen?'on':''}" id="pf-theme" role="switch" aria-checked="${isGreen}" aria-label="Mint palette"><span class="knob"></span></button>
+        </div>
       </div>
 
       <div class="card listcard" style="margin-top:16px">
@@ -968,6 +978,13 @@
       await DB.updateProfile({ measurement_system: u }); PROFILE.measurement_system = u;
       vProfile();
     });
+    const tgl = view.querySelector("#pf-theme");
+    if (tgl) tgl.onclick = () => {
+      const next = tgl.classList.contains("on") ? "brown" : "green";
+      if (window.TM) TM.set(next);
+      const on = next === "green";
+      tgl.classList.toggle("on", on); tgl.setAttribute("aria-checked", on);
+    };
     view.querySelector("#pf-logout").onclick = () => AUTH.signOut();
   }
 

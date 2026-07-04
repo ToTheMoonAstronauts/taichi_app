@@ -19,9 +19,22 @@
       theme = readCookie() || (() => { try { return localStorage.getItem("tm_theme"); } catch (e) { return null; } })() || "brown";
     }
     document.documentElement.setAttribute("data-theme", theme);
-    const applyLogo = () => document.querySelectorAll("img.logo").forEach(i => i.setAttribute("src", theme === "green" ? "assets/logo.webp" : "assets/logo2.webp"));
-    if (document.readyState !== "loading") applyLogo();
-    else document.addEventListener("DOMContentLoaded", applyLogo);
+    const applyLogo = (t) => document.querySelectorAll("img.logo").forEach(i => i.setAttribute("src", t === "green" ? "assets/logo.webp" : "assets/logo2.webp"));
+    const apply = (t) => applyLogo(t);
+    if (document.readyState !== "loading") apply(theme);
+    else document.addEventListener("DOMContentLoaded", () => apply(document.documentElement.getAttribute("data-theme")));
+    // Expose a setter so in-app UI (Profile toggle) can flip the palette live.
+    window.TM = {
+      get: () => document.documentElement.getAttribute("data-theme") || "brown",
+      set: (t) => {
+        t = t === "green" ? "green" : "brown";
+        writeCookie(t);
+        try { localStorage.setItem("tm_theme", t); } catch (e) {}
+        document.documentElement.setAttribute("data-theme", t);
+        applyLogo(t);
+        return t;
+      }
+    };
   } catch (e) {}
 })();
 

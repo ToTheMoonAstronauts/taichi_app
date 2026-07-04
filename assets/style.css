@@ -168,6 +168,30 @@ h1.page{font-family:var(--serif);font-size:29px;font-weight:600;letter-spacing:-
 }
 @media (max-width:380px){ .track-grid{grid-template-columns:1fr} }
 
+/* Adaptive Settings entry on Home — only on mobile, where the sidebar (and its
+   profile access) is hidden. Desktop reaches Profile via the sidebar avatar. */
+.home-settings{display:none}
+@media (max-width:768px){
+  .home-settings{display:flex;align-items:center;gap:14px;margin-top:16px;background:var(--card);
+    border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:16px 18px;text-decoration:none;color:var(--ink)}
+  .home-settings .hs-ic{font-size:22px;width:40px;height:40px;border-radius:12px;background:var(--primary-soft);
+    display:grid;place-items:center;flex:none}
+  .home-settings .hs-txt{flex:1;display:flex;flex-direction:column;line-height:1.3}
+  .home-settings .hs-txt b{font-weight:700;font-size:16px}
+  .home-settings .hs-txt small{color:var(--muted);font-size:13px}
+  .home-settings .hs-ch{color:var(--muted);font-size:24px;font-weight:700}
+}
+
+/* Toggle switch (Profile → Mint palette) */
+.row-toggle{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.tgl{width:52px;height:30px;border-radius:20px;border:none;background:var(--line);position:relative;
+  cursor:pointer;flex:none;transition:background .2s;padding:0}
+.tgl.on{background:var(--primary)}
+.tgl .knob{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;
+  transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.tgl.on .knob{left:25px}
+
 /* ===== Profile / settings ===== */
 .prof-id{display:flex;align-items:center;gap:14px;margin-top:6px}
 .prof-av{width:52px;height:52px;border-radius:50%;background:var(--primary-soft);color:var(--primary-dark);display:grid;place-items:center;font-weight:800;font-size:22px;flex:none}
