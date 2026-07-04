@@ -663,6 +663,40 @@
     return `<div class="ra-actions"><button class="ra-done" data-act="done">&#10003; Mark complete</button><button class="ra-skip" data-act="skip">&#9655; Skip</button></div>`;
   }
 
+  // ---- Similar recipes: shared-ingredient similarity, weighted by rarity (IDF) ----
+  const _STOP = new Set(("a an the of and or with without to into plus more for from in on at as " +
+    "tbsp tsp teaspoon teaspoons tablespoon tablespoons cup cups oz ounce ounces g gram grams kg ml l lb lbs pound pounds " +
+    "pinch dash clove cloves can cans jar jars package packet stick sticks slice slices piece pieces sprig sprigs handful " +
+    "small medium large whole half halves finely thinly freshly fresh ground chopped diced minced sliced grated shredded " +
+    "crumbled divided drained rinsed cooked raw boneless skinless extra virgin room temperature cut halved seeded quartered " +
+    "peeled toasted plain low reduced free about approx approximately optional taste serve serving servings coarse " +
+    "your you it is are size inch cm each per note about").split(/\s+/));
+  let _idf = null; const _kwCache = new WeakMap();
+  function _kw(rec) {
+    if (_kwCache.has(rec)) return _kwCache.get(rec);
+    const src = ((rec.title || "") + " " + (rec.ingredients || []).join(" ")).toLowerCase()
+      .replace(/\([^)]*\)/g, " ").replace(/[^a-z\s-]/g, " ");
+    const set = new Set();
+    src.split(/[\s-]+/).forEach(w => { if (w.length >= 3 && !_STOP.has(w)) set.add(w); });
+    _kwCache.set(rec, set); return set;
+  }
+  function similarRecipes(target, all, k) {
+    if (!_idf) {
+      const df = new Map();
+      all.forEach(rec => _kw(rec).forEach(w => df.set(w, (df.get(w) || 0) + 1)));
+      const N = all.length; _idf = new Map();
+      df.forEach((c, w) => _idf.set(w, Math.log((N + 1) / (c + 1))));   // rarer ingredient => higher weight
+    }
+    const tset = _kw(target);
+    return all.filter(x => x.id !== target.id).map(x => {
+      let s = 0;
+      _kw(x).forEach(w => { if (tset.has(w)) s += (_idf.get(w) || 0); });      // shared-ingredient score
+      if (x.meal_type === target.meal_type) s += 0.6;                          // light nudge, not a filter
+      s += 0.5 * Math.max(0, 1 - Math.abs((x.kcal || 0) - (target.kcal || 0)) / 500); // calorie proximity tiebreak
+      return { x, s };
+    }).sort((a, b) => b.s - a.s).slice(0, k).map(o => o.x);
+  }
+
   async function vRecipe(id) {
     const _n = _nav;
     const recipes = _recipes || (_recipes = await DB.recipes());
@@ -672,7 +706,7 @@
     const fav = !!ST.favorites[id];
     const ing = (r.ingredients || []).map(i => `<li>${esc(i)}</li>`).join("");
     const ins = (r.instructions || []).map((s, i) => `<div class="lrow"><span class="lnum">${i+1}</span><span class="ltext"><span class="lt" style="font-weight:600">${esc(s)}</span></span></div>`).join("");
-    const similar = recipes.filter(x => x.id !== id && x.meal_type === r.meal_type).slice(0, 6).map(x => `<div class="wcard meal" data-id="${x.id}" style="min-width:200px"><div class="thumb"><img src="${rimg(x,400,260)}"><span class="b badge beg">${x.kcal} kcal</span></div><div class="body"><div class="t" style="font-size:15px">${esc(x.title)}</div></div></div>`).join("");
+    const similar = similarRecipes(r, recipes, 6).map(x => `<div class="wcard meal" data-id="${x.id}" style="min-width:200px"><div class="thumb"><img src="${rimg(x,400,260)}"><span class="b badge beg">${x.kcal} kcal</span></div><div class="body"><div class="t" style="font-size:15px">${esc(x.title)}</div></div></div>`).join("");
     const planItem = planItemForRecipe(id, r.meal_type);
     view.innerHTML = `<button class="backlink" onclick="location.hash='#/meals'">‹ Meals</button>
       <div class="recipe-hero">
