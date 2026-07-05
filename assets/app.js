@@ -7,7 +7,16 @@
   const el = (h) => { const d = document.createElement("div"); d.innerHTML = h; return d; };
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const lv = (l) => l === "Advanced" ? "adv" : l === "Intermediate" ? "int" : "beg";
-  const img = (seed, w, h) => /^https?:/.test(seed) ? `${seed}?w=${w}&h=${h}&fit=crop&crop=entropy&q=70&auto=format` : `https://picsum.photos/seed/${encodeURIComponent("ctc-" + seed)}/${w}/${h}`;
+  const img = (seed, w, h) => {
+    if (/^https?:/.test(seed)) {
+      // Supabase Storage objects: serve a resized/compressed (WebP when supported) variant
+      // on the fly via the image-transformation endpoint — ~95% smaller than the 1024px original.
+      if (seed.includes("/storage/v1/object/public/"))
+        return seed.replace("/object/public/", "/render/image/public/") + `?width=${w}&height=${h}&resize=cover&quality=70`;
+      return `${seed}?w=${w}&h=${h}&fit=crop&crop=entropy&q=70&auto=format`;
+    }
+    return `https://picsum.photos/seed/${encodeURIComponent("ctc-" + seed)}/${w}/${h}`;
+  };
   const rimg = (r, w, h) => img((r && (r.image_url || r.image_seed)) || "", w, h);
 
   let DATA = null, ST = null, PROFILE = null;
