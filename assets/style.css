@@ -523,3 +523,7 @@ h1.page{font-family:var(--serif);font-size:29px;font-weight:600;letter-spacing:-
 .bill-row .br b{font-size:14.5px;font-variant-numeric:tabular-nums}
 .bstat{font-size:11px;font-weight:700;color:var(--muted)}
 .bstat.ok{color:var(--primary)}
+.order-row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;font-size:15px;border-top:1px solid var(--line)}
+.order-row:first-of-type{border-top:none}
+.order-row > span:first-child{color:var(--muted)}
+.order-row > span:last-child{font-weight:600;text-align:right}
