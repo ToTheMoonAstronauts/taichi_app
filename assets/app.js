@@ -131,7 +131,7 @@
     { id:"desserts", title:"Sweet & Gentle: 25 Lighter Desserts", sub:"25 lighter treats you'll love", file:"assets/guide-desserts.pdf?v=1", unlock:["essential_guides","essential_guides_onetime"], bundleId:"essential_guides", ready:true },
     { id:"sleep", title:"Better Sleep", sub:"A Chair Tai Chi wind-down for restful nights", file:"assets/guide-sleep.pdf?v=1", unlock:["all_guides","guide_sleep"], bundleId:"all_guides", ready:true },
     { id:"eating", title:"Eating Without Guilt", sub:"A calm, kind relationship with food", file:"assets/guide-eating.pdf?v=1", unlock:["all_guides","guide_eating"], bundleId:"all_guides", ready:true },
-    { id:"aging", title:"Aging Gracefully", sub:"Daily habits for healthy aging", unlock:["all_guides","guide_aging"], bundleId:"all_guides", ready:false },
+    { id:"aging", title:"Aging Gracefully", sub:"7 pillars for a strong, calm, joyful later life", file:"assets/guide-aging.pdf?v=1", unlock:["all_guides","guide_aging"], bundleId:"all_guides", ready:true },
   ];
   const BUNDLES = {
     essential_guides: { name:"Essential Guides bundle", price:"$9.99", upsell:"https://taimotion.com/upsell1.html",
