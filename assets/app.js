@@ -126,7 +126,7 @@
   // ---- Premium guides (upsell content) ----
   const GUIDES = [
     { id:"joint-mobility", title:"Joint & Mobility", sub:"Gentle seated joint-care routine", file:"assets/guide-joint-mobility.pdf?v=1", unlock:["essential_guides","essential_guides_onetime"], bundleId:"essential_guides", ready:true },
-    { id:"breathing", title:"Stress-Relief Breathing", sub:"Seated breathing to calm body & mind", file:"assets/guide-breathing.pdf?v=1", unlock:["essential_guides","essential_guides_onetime"], bundleId:"essential_guides", ready:true },
+    { id:"breathing", title:"Stress-Relief Breathing", sub:"Seated breathing to calm body & mind", file:"assets/guide-breathing.pdf?v=2", unlock:["essential_guides","essential_guides_onetime"], bundleId:"essential_guides", ready:true },
     { id:"nutrition", title:"Weekly Gentle Nutrition", sub:"Simple, senior-friendly eating", unlock:["essential_guides","essential_guides_onetime"], bundleId:"essential_guides", ready:false },
     { id:"desserts", title:"Healthy Desserts for 50+", sub:"Lighter treats you'll love", unlock:["essential_guides","essential_guides_onetime"], bundleId:"essential_guides", ready:false },
     { id:"sleep", title:"Better Sleep", sub:"Wind-down routine & habits", unlock:["all_guides","guide_sleep"], bundleId:"all_guides", ready:false },
