@@ -57,14 +57,16 @@ window.DB = (function () {
   }
 
   async function loadUserState() {
-    const state = { completed: {}, favorites: {}, latest: {}, history: {} };
+    const state = { completed: {}, favorites: {}, latest: {}, history: {}, owned: {} };
     try {
-      const [{ data: prog }, { data: favs }, { data: checks }] = await Promise.all([
+      const [{ data: prog }, { data: favs }, { data: checks }, { data: pays }] = await Promise.all([
         SB.from("user_session_progress").select("session_id"),
         SB.from("favorites").select("item_type,item_id"),
         SB.from("progress_checkins").select("metric,value,text_value,recorded_at").order("recorded_at", { ascending: false }),
+        SB.from("payments").select("kind"),
       ]);
       (prog || []).forEach(p => state.completed[p.session_id] = true);
+      (pays || []).forEach(p => { if (p.kind && p.kind.indexOf("upsell:") === 0) state.owned[p.kind.slice(7)] = true; });
       (favs || []).forEach(f => state.favorites[f.item_id] = true);
       (checks || []).forEach(c => {
         (state.history[c.metric] = state.history[c.metric] || []).push({ value: c.text_value ?? c.value, at: c.recorded_at });

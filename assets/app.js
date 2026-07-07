@@ -123,6 +123,54 @@
     } catch (e) { return ""; }
   }
 
+  // ---- Premium guides (upsell content) ----
+  const GUIDES = [
+    { id:"joint-mobility", title:"Joint & Mobility", sub:"Gentle seated joint-care routine", file:"assets/guide-joint-mobility.pdf?v=1", unlock:["essential_guides","essential_guides_onetime"], bundleId:"essential_guides", ready:true },
+    { id:"breathing", title:"Stress-Relief Breathing", sub:"Full-body calming breath work", unlock:["essential_guides","essential_guides_onetime"], bundleId:"essential_guides", ready:false },
+    { id:"nutrition", title:"Weekly Gentle Nutrition", sub:"Simple, senior-friendly eating", unlock:["essential_guides","essential_guides_onetime"], bundleId:"essential_guides", ready:false },
+    { id:"desserts", title:"Healthy Desserts for 50+", sub:"Lighter treats you'll love", unlock:["essential_guides","essential_guides_onetime"], bundleId:"essential_guides", ready:false },
+    { id:"sleep", title:"Better Sleep", sub:"Wind-down routine & habits", unlock:["all_guides","guide_sleep"], bundleId:"all_guides", ready:false },
+    { id:"eating", title:"Eating Without Guilt", sub:"A calm relationship with food", unlock:["all_guides","guide_eating"], bundleId:"all_guides", ready:false },
+    { id:"aging", title:"Aging Gracefully", sub:"Daily habits for healthy aging", unlock:["all_guides","guide_aging"], bundleId:"all_guides", ready:false },
+  ];
+  const BUNDLES = {
+    essential_guides: { name:"Essential Guides bundle", price:"$9.99", upsell:"https://taimotion.com/upsell1.html",
+      includes:["Joint & Mobility","Stress-Relief Breathing","Weekly Gentle Nutrition","Healthy Desserts for 50+"] },
+    all_guides: { name:"Wellbeing Guides bundle", price:"$19.99", upsell:"https://taimotion.com/upsell2.html",
+      includes:["Better Sleep","Eating Without Guilt","Aging Gracefully"] },
+  };
+  const guideOwned = (g) => g.unlock.some(u => ST && ST.owned && ST.owned[u]);
+  function renderGuides() {
+    const cards = GUIDES.map(g => {
+      const owned = guideOwned(g);
+      if (owned && g.ready) return `<a class="gcard owned" href="${g.file}" download="${esc(g.title)}.pdf"><span class="gc-ic">\uD83D\uDCD7</span><span class="gc-tx"><b>${esc(g.title)}</b><small>${esc(g.sub)}</small></span><span class="gc-dl">\u2B07</span></a>`;
+      if (owned && !g.ready) return `<div class="gcard soon"><span class="gc-ic">\uD83D\uDCD7</span><span class="gc-tx"><b>${esc(g.title)}</b><small>Owned \u00B7 coming soon</small></span></div>`;
+      return `<div class="gcard locked" data-bundle="${g.bundleId}"><span class="gc-ic">\uD83D\uDD12</span><span class="gc-tx"><b>${esc(g.title)}</b><small>${esc(g.sub)}</small></span><span class="gc-lock">Unlock</span></div>`;
+    }).join("");
+    return `<div class="premium"><div class="prem-h">\u2726 Premium Guides</div><div class="guides">${cards}</div></div>`;
+  }
+  function wireGuides(root) {
+    root.querySelectorAll(".gcard.locked").forEach(c => c.onclick = () => openBundleModal(c.dataset.bundle));
+  }
+  function openBundleModal(bundleId) {
+    const b = BUNDLES[bundleId]; if (!b) return;
+    const inc = b.includes.map(x => `<li>${esc(x)}</li>`).join("");
+    const ov = document.createElement("div"); ov.className = "modal-ov";
+    ov.innerHTML = `<div class="modal"><button class="modal-x" aria-label="Close">\u00D7</button>
+      <div class="modal-badge">\uD83D\uDD12 Locked</div>
+      <h3>Unlock the ${esc(b.name)}</h3>
+      <p class="modal-sub">Get instant access to all of these downloadable guides:</p>
+      <ul class="modal-inc">${inc}</ul>
+      <div class="modal-price">One-time <b>${esc(b.price)}</b> \u00B7 yours to keep</div>
+      <button class="btn block modal-cta">Unlock now</button>
+      <p class="modal-fine">Securely charged to your card on file. Instant access.</p></div>`;
+    document.body.appendChild(ov);
+    const close = () => ov.remove();
+    ov.querySelector(".modal-x").onclick = close;
+    ov.onclick = (e) => { if (e.target === ov) close(); };
+    ov.querySelector(".modal-cta").onclick = () => { window.open(b.upsell, "_blank"); };
+  }
+
   async function vHome() {
     const _n = _nav;
     const name = (PROFILE && PROFILE.name) || "there";
@@ -167,8 +215,10 @@
         <div class="card mini"><div><div style="font-weight:700">Self-assessment</div><div class="v" style="font-size:14px;color:var(--muted)">${selfSub}</div></div><a class="btn ghost" href="#/track/mood">Log</a></div>
         <div class="card mini"><div><div style="font-weight:700">Fasting</div><div class="v" style="font-size:14px;color:var(--muted)">${fastSub}</div></div><a class="btn ghost" href="#/track/fasting">Open</a></div>
       </div></div>
+      ${renderGuides()}
       <a class="home-settings" href="#/profile"><span class="hs-ic">⚙️</span><span class="hs-txt"><b>Settings</b><small>Profile, units, palette &amp; more</small></span><span class="hs-ch">›</span></a>`;
     view.querySelector(".hero-card").onclick = () => location.hash = "#/workout/" + hero.id;
+    wireGuides(view);
     view.querySelectorAll("[data-mact]").forEach(b => b.onclick = async (e) => {
       e.preventDefault();
       const today = PLAN.isoDate(new Date()), slot = b.dataset.slot, status = b.dataset.mact === "done" ? "done" : "skipped";
