@@ -128,14 +128,14 @@
     { id:"joint-mobility", title:"Joint & Mobility", sub:"Gentle seated joint-care routine", file:"assets/guide-joint-mobility.pdf?v=1", unlock:["essential_guides","essential_guides_onetime"], bundleId:"essential_guides", ready:true },
     { id:"breathing", title:"Stress-Relief Breathing", sub:"Seated breathing to calm body & mind", file:"assets/guide-breathing.pdf?v=2", unlock:["essential_guides","essential_guides_onetime"], bundleId:"essential_guides", ready:true },
     { id:"nutrition", title:"Weekly Gentle Nutrition", sub:"7 gentle habits for eating well", file:"assets/guide-nutrition.pdf?v=1", unlock:["essential_guides","essential_guides_onetime"], bundleId:"essential_guides", ready:true },
-    { id:"desserts", title:"Healthy Desserts for 50+", sub:"Lighter treats you'll love", unlock:["essential_guides","essential_guides_onetime"], bundleId:"essential_guides", ready:false },
+    { id:"desserts", title:"Sweet & Gentle: 25 Lighter Desserts", sub:"25 lighter treats you'll love", file:"assets/guide-desserts.pdf?v=1", unlock:["essential_guides","essential_guides_onetime"], bundleId:"essential_guides", ready:true },
     { id:"sleep", title:"Better Sleep", sub:"Wind-down routine & habits", unlock:["all_guides","guide_sleep"], bundleId:"all_guides", ready:false },
     { id:"eating", title:"Eating Without Guilt", sub:"A calm relationship with food", unlock:["all_guides","guide_eating"], bundleId:"all_guides", ready:false },
     { id:"aging", title:"Aging Gracefully", sub:"Daily habits for healthy aging", unlock:["all_guides","guide_aging"], bundleId:"all_guides", ready:false },
   ];
   const BUNDLES = {
     essential_guides: { name:"Essential Guides bundle", price:"$9.99", upsell:"https://taimotion.com/upsell1.html",
-      includes:["Joint & Mobility","Stress-Relief Breathing","Weekly Gentle Nutrition","Healthy Desserts for 50+"] },
+      includes:["Joint & Mobility","Stress-Relief Breathing","Weekly Gentle Nutrition","Sweet & Gentle: 25 Lighter Desserts"] },
     all_guides: { name:"Wellbeing Guides bundle", price:"$19.99", upsell:"https://taimotion.com/upsell2.html",
       includes:["Better Sleep","Eating Without Guilt","Aging Gracefully"] },
   };
