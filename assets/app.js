@@ -246,7 +246,7 @@
         <div class="hero-card" data-go="${hero.id}"><img src="${img(hero.seed,800,500)}" alt=""><div class="veil"></div>
           <div class="meta"><div class="pills"><span>${hero.min} min</span><span>${hero.level}</span><span>Today's session</span></div>
           <div class="title">${esc(hero.title)}</div></div><button class="play">▶</button></div>
-        <a class="pdfcard" href="assets/tai-chi-walking.pdf?v=3" download="Tai-Chi-Walking.pdf">
+        <a class="pdfcard" href="assets/tai-chi-walking2.pdf?v=1" download="Tai-Chi-Walking.pdf">
           <span class="pc-ic">🎁</span>
           <span class="pc-txt"><span class="pc-t">Download Free PDF: Tai Chi Walking</span><span class="pc-s">Click here to download</span></span>
           <span class="pc-dl">⬇</span></a>
