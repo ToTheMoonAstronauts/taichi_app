@@ -11,8 +11,8 @@
     if (/^https?:/.test(seed)) {
       // Supabase Storage objects: serve a resized/compressed (WebP when supported) variant
       // on the fly via the image-transformation endpoint — ~95% smaller than the 1024px original.
-      if (seed.includes("/storage/v1/object/public/"))
-        return seed.replace("/object/public/", "/render/image/public/") + `?width=${w}&height=${h}&resize=cover&quality=70`;
+      // Image transformations aren't enabled on this project, so serve the original object directly.
+      if (seed.includes("/storage/v1/object/public/")) return seed;
       return `${seed}?w=${w}&h=${h}&fit=crop&crop=entropy&q=70&auto=format`;
     }
     return `https://picsum.photos/seed/${encodeURIComponent("ctc-" + seed)}/${w}/${h}`;
