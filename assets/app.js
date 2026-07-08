@@ -1158,13 +1158,13 @@
     if (kind === "renewal") return "Subscription renewal";
     if (kind && kind.indexOf("upsell:") === 0) {
       const id = kind.slice(7);
-      return ({ essential_guides: "Essential Guides bundle", essential_guides_onetime: "Essential Guides bundle", all_guides: "Wellbeing Guides bundle", guide_sleep: "Better Sleep guide", guide_eating: "Eating Without Guilt guide", guide_aging: "Aging Gracefully guide", vip: "VIP membership" }[id]) || ("Add-on: " + id.replace(/_/g, " "));
+      return ({ essential_guides: "Essential Guides bundle", essential_guides_onetime: "Essential Guides bundle", all_guides: "Wellbeing Guides bundle", "guide_joint-mobility": "Joint & Mobility guide", guide_breathing: "Stress-Relief Breathing guide", guide_nutrition: "Weekly Gentle Nutrition guide", guide_desserts: "Sweet & Gentle Desserts guide", guide_sleep: "Better Sleep guide", guide_eating: "Eating Without Guilt guide", guide_aging: "Aging Gracefully guide", vip: "VIP membership" }[id]) || ("Add-on: " + id.replace(/_/g, " "));
     }
     return kind || "Charge";
   }
   function receiptUrl(raw) {
     if (!raw) return null;
-    return raw.hosted_invoice_url || raw.invoice_pdf || (raw.charges && raw.charges.data && raw.charges.data[0] && raw.charges.data[0].receipt_url) || null;
+    return raw.receipt_url || raw.hosted_invoice_url || raw.invoice_pdf || (raw.charges && raw.charges.data && raw.charges.data[0] && raw.charges.data[0].receipt_url) || null;
   }
   function renderBills(pays) {
     const box = document.getElementById("billCard"); if (!box) return;
