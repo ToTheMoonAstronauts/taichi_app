@@ -291,7 +291,7 @@
     const tabs = `<div class="tabs"><button data-t="workouts" class="${tab==='workouts'?'on':''}">Workouts</button><button data-t="plan" class="${tab==='plan'?'on':''}">Plan</button></div>`;
     let body = "";
     if (tab === "workouts") {
-      const ACTIVE = ["Tai Chi", "Tai Chi Chair", "Tai Chi Walking"];
+      const ACTIVE = ["Tai Chi Chair", "Tai Chi Walking"];
       const activeCats = DATA.categories.filter(c => ACTIVE.includes(c));
       const comingCats = DATA.categories.filter(c => !ACTIVE.includes(c));
       let active = sessionStorage.getItem("exfilter") || "All";
