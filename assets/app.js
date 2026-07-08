@@ -342,24 +342,45 @@
   function vAccWorkout(w, id, done, fav, steps) {
     const isWalk = w.cat === "Tai Chi Walking";
     const hasVideo = steps.some(s => s.video);
+    const perMove = !hasVideo;                       // photo/walking sessions: close each move one-by-one
     const day = isWalk ? walkDay(w) : 0;
+    const sd = () => { ST.stepDone = ST.stepDone || {}; return (ST.stepDone[id] = ST.stepDone[id] || {}); };
+    const nDone = () => steps.reduce((a, _, i) => a + (sd()[i] ? 1 : 0), 0);
+
     const items = steps.map((s, i) => {
+      const isDone = !!sd()[i];
       let body;
-      if (s.video) body = `<div class="wacc-video"><video controls playsinline preload="metadata"><source src="${s.video}" type="video/mp4"></video></div>${s.desc ? `<p class="wacc-desc below">${esc(s.desc)}</p>` : ""}<div class="wacc-foot"><button class="wacc-skip" data-i="${i}">Skip this move ⏭</button></div>`;
-      else if (s.img) body = `<div class="wacc-2col"><div class="wacc-img"><img src="${s.img}" alt="${esc(s.t)}"></div><p class="wacc-desc">${esc(s.desc || "")}</p></div>`;
-      else body = `<p class="wacc-desc below">${esc(s.desc || "")}</p>`;
-      return `<div class="wacc-item${i === 0 ? " open" : ""}">
+      if (s.video) {
+        body = `<div class="wacc-video"><video controls playsinline preload="metadata"><source src="${s.video}" type="video/mp4"></video></div>${s.desc ? `<p class="wacc-desc below">${esc(s.desc)}</p>` : ""}<div class="wacc-foot"><button class="wacc-skip" data-i="${i}">Skip this move ⏭</button></div>`;
+      } else {
+        const how = Array.isArray(s.how) && s.how.length
+          ? `<div class="wacc-how"><div class="wacc-how-h">How to do it</div>${s.how.map(p => `<div class="wacc-step"><b>${esc(p[0])}</b> — ${esc(p[1])}</div>`).join("")}</div>`
+          : "";
+        body = `<div class="wacc-photo"><img src="${s.img}" alt="${esc(s.t)}"></div>
+          ${s.desc ? `<p class="wacc-cue">${esc(s.desc)}</p>` : ""}
+          ${how}
+          <button class="wacc-done${isDone ? " is-done" : ""}" data-i="${i}">${isDone ? "✓ Done — tap to undo" : "Mark as done"}</button>`;
+      }
+      const meta = s.dose ? esc(s.dose) : (s.min ? `${s.min} min` : "");
+      return `<div class="wacc-item${isDone ? " done" : ""}${i === 0 ? " open" : ""}" data-item="${i}">
         <button class="wacc-head" data-i="${i}">
-          <span class="lnum">${String(i + 1).padStart(2, "0")}</span>
-          <span class="ltext"><span class="lt">${esc(s.t)}</span><span class="ls"><span class="badge ${lv(s.lvl)}">${esc(s.lvl || "Beginner")}</span>${s.min ? ` · ${s.min} min` : ""}</span></span>
+          <span class="lnum">${isDone ? "✓" : String(i + 1).padStart(2, "0")}</span>
+          <span class="ltext"><span class="lt">${esc(s.t)}</span><span class="ls"><span class="badge ${lv(s.lvl)}">${esc(s.lvl || "Beginner")}</span>${meta ? ` · ${meta}` : ""}</span></span>
           <span class="wacc-chev">›</span></button>
         <div class="wacc-body">${body}</div>
       </div>`;
     }).join("");
-    const startLabel = done ? "✓ Completed — do it again" : (isWalk && !hasVideo ? `▶ Start Day ${day}` : "▶ Start session");
+
+    const nd0 = nDone();
+    const progressHtml = perMove ? `<div class="wk-prog"><div class="wk-prog-top"><span>Your progress</span><span id="wkProgTxt">${nd0}/${steps.length} moves</span></div><div class="wk-bar"><i id="wkProgBar" style="width:${Math.round(nd0 / steps.length * 100)}%"></i></div></div>` : "";
+    const startLabel = hasVideo
+      ? (done ? "✓ Completed — do it again" : "▶ Start session")
+      : (nd0 >= steps.length ? "✓ Day complete — start over" : "Mark all as done");
+
     view.innerHTML = `<button class="backlink" onclick="history.back()">‹ Back</button>
       <div class="wk-head"><span class="badge ${lv(w.level)}">${w.level}</span><h1 class="page wk-title">${esc(w.title)}</h1><button class="favico" id="favBtn" title="Save">${fav?"♥":"♡"}</button></div>
-      <p class="page-sub">${isWalk ? `Day ${day} · ` : ""}${w.min} min · ${steps.length} moves</p>
+      <p class="page-sub">${isWalk ? `Day ${day} · ` : ""}${w.min} min · ${steps.length} moves${perMove ? " · tap each move done" : ""}</p>
+      ${progressHtml}
       <div class="wacc" id="wacc">${items}</div>
       <div class="cta-fixed"><button class="btn block" id="markDone">${startLabel}</button></div>`;
     _sessionRunning = false;
@@ -408,9 +429,56 @@
     });
     els().forEach((it, i) => { const v = it.querySelector("video"); if (v) v.addEventListener("ended", () => { if (_sessionRunning) afterMove(i); }); });
     view.querySelectorAll(".wacc-skip").forEach(b => b.onclick = (e) => { e.stopPropagation(); if (_sessionRunning) afterMove(+b.dataset.i); });
+
+    // ---- per-move completion (photo / walking sessions) ----
+    const syncDay = async () => {
+      const all = nDone() >= steps.length;
+      if (all && !ST.completed[id]) { ST.completed[id] = true; try { await DB.toggleSession(id, true); } catch (e) {} }
+      else if (!all && ST.completed[id]) { delete ST.completed[id]; try { await DB.toggleSession(id, false); } catch (e) {} }
+    };
+    const refreshProg = () => {
+      const n = nDone();
+      const t = view.querySelector("#wkProgTxt"); if (t) t.textContent = `${n}/${steps.length} moves`;
+      const b = view.querySelector("#wkProgBar"); if (b) b.style.width = Math.round(n / steps.length * 100) + "%";
+      const md = view.querySelector("#markDone"); if (md && perMove) md.textContent = (n >= steps.length ? "✓ Day complete — start over" : "Mark all as done");
+    };
+    const setMove = (i, on) => {
+      if (on) sd()[i] = true; else delete sd()[i];
+      const it = view.querySelector(`.wacc-item[data-item="${i}"]`);
+      if (it) {
+        it.classList.toggle("done", on);
+        const num = it.querySelector(".lnum"); if (num) num.textContent = on ? "✓" : String(i + 1).padStart(2, "0");
+        const btn = it.querySelector(".wacc-done"); if (btn) { btn.classList.toggle("is-done", on); btn.textContent = on ? "✓ Done — tap to undo" : "Mark as done"; }
+      }
+      refreshProg();
+    };
+    view.querySelectorAll(".wacc-done").forEach(b => b.onclick = async (e) => {
+      e.stopPropagation();
+      const i = +b.dataset.i, on = !sd()[i];
+      setMove(i, on);
+      try { await DB.markStep(id, i, on); } catch (err) {}
+      await syncDay();
+      if (on) {   // auto-open the next move still to do
+        let nx = -1; for (let k = 0; k < steps.length; k++) if (!sd()[k]) { nx = k; break; }
+        const arr = [...view.querySelectorAll(".wacc-item")];
+        arr.forEach(x => x.classList.remove("open"));
+        if (nx >= 0) { arr[nx].classList.add("open"); arr[nx].scrollIntoView({ behavior: "smooth", block: "center" }); }
+      }
+    });
+
     view.querySelector("#markDone").onclick = async () => {
       if (hasVideo) { played.clear(); _sessionRunning = true; if (wacc) wacc.classList.add("playing"); const btn = view.querySelector("#markDone"); if (btn) btn.textContent = "▶ Playing session…"; playMove(0); }
-      else { const on = !ST.completed[id]; if (on) ST.completed[id] = true; else delete ST.completed[id]; await DB.toggleSession(id, on); vWorkout(id); }
+      else if (nDone() >= steps.length) {              // start over
+        steps.forEach((_, i) => delete sd()[i]);
+        try { await DB.clearSteps(id); } catch (e) {}
+        if (ST.completed[id]) { delete ST.completed[id]; try { await DB.toggleSession(id, false); } catch (e) {} }
+        vWorkout(id);
+      } else {                                          // mark whole day done
+        steps.forEach((_, i) => sd()[i] = true);
+        try { for (let i = 0; i < steps.length; i++) await DB.markStep(id, i, true); } catch (e) {}
+        if (!ST.completed[id]) { ST.completed[id] = true; try { await DB.toggleSession(id, true); } catch (e) {} }
+        vWorkout(id);
+      }
     };
     view.querySelector("#favBtn").onclick = async () => { const on = !ST.favorites[id]; if (on) ST.favorites[id] = true; else delete ST.favorites[id]; await DB.toggleFav(id, on); vWorkout(id); };
   }
