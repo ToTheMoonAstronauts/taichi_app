@@ -1334,9 +1334,11 @@
   }
 
   // ---------- Boot ----------
+  let _booted = false, _uid = null;
   async function boot() {
     const session = await AUTH.session();
-    if (!session) return renderAuth();
+    if (!session) { _booted = false; _uid = null; return renderAuth(); }
+    _uid = session.user.id; _booted = true;
     PROFILE = await DB.profile();
     if (!DB.hasAccess(PROFILE)) return renderGate();
     [DATA, ST] = await Promise.all([DB.loadContent(), DB.loadUserState()]);
@@ -1344,6 +1346,15 @@
     route();
   }
   window.addEventListener("hashchange", route);
-  SB.auth.onAuthStateChange((event) => { if (event === "SIGNED_IN" || event === "SIGNED_OUT") boot(); });
+  // Only (re)boot on a genuinely new sign-in or a sign-out. Supabase re-fires SIGNED_IN when the tab
+  // regains focus (session re-validation / token refresh); re-booting then would needlessly reload the
+  // view and lose the member's place — so we ignore repeat SIGNED_IN for the same user, and TOKEN_REFRESHED.
+  SB.auth.onAuthStateChange((event, session) => {
+    if (event === "SIGNED_OUT") { _booted = false; _uid = null; boot(); return; }
+    if (event === "SIGNED_IN") {
+      const uid = session && session.user ? session.user.id : null;
+      if (!_booted || uid !== _uid) boot();
+    }
+  });
   boot();
 })();
