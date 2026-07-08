@@ -47,7 +47,7 @@ window.DB = (function () {
       // per-move flow ship together as one batch, not via the shared DB).
       try {
         const wr = await fetch("assets/walking/steps.json?v=1", { cache: "no-cache" });
-        if (wr.ok) { const wov = await wr.json(); workouts.forEach(w => { if (wov[w.id]) w.steps = wov[w.id]; }); }
+        if (wr.ok) { const wov = await wr.json(); workouts.forEach(w => { if (wov[w.id]) { w.steps = wov[w.id]; if (w.steps[0] && w.steps[0].img) w.seed = w.steps[0].img; } }); }
       } catch (e) { /* keep DB steps */ }
       const categories = [...new Set(workouts.map(w => w.cat))];
       const stress = {};

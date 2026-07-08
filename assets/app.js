@@ -276,7 +276,8 @@
   function wcard(w) {
     const fav = !!ST.favorites[w.id];
     const isWalk = w.cat === "Tai Chi Walking";
-    const src = (isWalk && /^https?:/.test(w.seed || "")) ? w.seed : img(w.seed, 400, 260);
+    const walkImg = /^(https?:|assets\/)/.test(w.seed || "");
+    const src = (isWalk && walkImg) ? w.seed : img(w.seed, 400, 260);
     const title = isWalk ? `Day ${walkDay(w)}` : esc(w.title);
     const meta = isWalk ? `${esc(w.title)} · ${w.min} min` : `${w.min} min · ${esc(w.focus || "")}`;
     return `<div class="wcard${isWalk ? " walk" : ""}" data-id="${w.id}" ${w.locked ? 'data-locked="1"' : ""}>
@@ -373,16 +374,18 @@
 
     const nd0 = nDone();
     const progressHtml = perMove ? `<div class="wk-prog"><div class="wk-prog-top"><span>Your progress</span><span id="wkProgTxt">${nd0}/${steps.length} moves</span></div><div class="wk-bar"><i id="wkProgBar" style="width:${Math.round(nd0 / steps.length * 100)}%"></i></div></div>` : "";
+    const allDone0 = nd0 >= steps.length;
+    const showCta = hasVideo || allDone0;                 // no "mark all" shortcut — reset shows only once complete
     const startLabel = hasVideo
       ? (done ? "✓ Completed — do it again" : "▶ Start session")
-      : (nd0 >= steps.length ? "✓ Day complete — start over" : "Mark all as done");
+      : "✓ Day complete — start over";
 
     view.innerHTML = `<button class="backlink" onclick="history.back()">‹ Back</button>
       <div class="wk-head"><span class="badge ${lv(w.level)}">${w.level}</span><h1 class="page wk-title">${esc(w.title)}</h1><button class="favico" id="favBtn" title="Save">${fav?"♥":"♡"}</button></div>
       <p class="page-sub">${isWalk ? `Day ${day} · ` : ""}${w.min} min · ${steps.length} moves${perMove ? " · tap each move done" : ""}</p>
       ${progressHtml}
       <div class="wacc" id="wacc">${items}</div>
-      <div class="cta-fixed"><button class="btn block" id="markDone">${startLabel}</button></div>`;
+      ${showCta ? `<div class="cta-fixed"><button class="btn block" id="markDone">${startLabel}</button></div>` : ""}`;
     _sessionRunning = false;
     const wacc = view.querySelector("#wacc");
     const els = () => view.querySelectorAll(".wacc-item");
@@ -440,7 +443,15 @@
       const n = nDone();
       const t = view.querySelector("#wkProgTxt"); if (t) t.textContent = `${n}/${steps.length} moves`;
       const b = view.querySelector("#wkProgBar"); if (b) b.style.width = Math.round(n / steps.length * 100) + "%";
-      const md = view.querySelector("#markDone"); if (md && perMove) md.textContent = (n >= steps.length ? "✓ Day complete — start over" : "Mark all as done");
+      if (perMove) {
+        const complete = n >= steps.length;
+        let cta = view.querySelector(".cta-fixed");
+        if (complete && !cta) {
+          cta = document.createElement("div"); cta.className = "cta-fixed";
+          cta.innerHTML = `<button class="btn block" id="markDone">✓ Day complete — start over</button>`;
+          view.appendChild(cta); wireMarkDone(cta.querySelector("#markDone"));
+        } else if (!complete && cta) { cta.remove(); }
+      }
     };
     const setMove = (i, on) => {
       if (on) sd()[i] = true; else delete sd()[i];
@@ -466,20 +477,19 @@
       }
     });
 
-    view.querySelector("#markDone").onclick = async () => {
-      if (hasVideo) { played.clear(); _sessionRunning = true; if (wacc) wacc.classList.add("playing"); const btn = view.querySelector("#markDone"); if (btn) btn.textContent = "▶ Playing session…"; playMove(0); }
-      else if (nDone() >= steps.length) {              // start over
-        steps.forEach((_, i) => delete sd()[i]);
-        try { await DB.clearSteps(id); } catch (e) {}
-        if (ST.completed[id]) { delete ST.completed[id]; try { await DB.toggleSession(id, false); } catch (e) {} }
-        vWorkout(id);
-      } else {                                          // mark whole day done
-        steps.forEach((_, i) => sd()[i] = true);
-        try { for (let i = 0; i < steps.length; i++) await DB.markStep(id, i, true); } catch (e) {}
-        if (!ST.completed[id]) { ST.completed[id] = true; try { await DB.toggleSession(id, true); } catch (e) {} }
-        vWorkout(id);
-      }
-    };
+    function wireMarkDone(btn) {
+      if (!btn) return;
+      btn.onclick = async () => {
+        if (hasVideo) { played.clear(); _sessionRunning = true; if (wacc) wacc.classList.add("playing"); btn.textContent = "▶ Playing session…"; playMove(0); }
+        else {                                           // perMove: button only shows when complete → start over
+          steps.forEach((_, i) => delete sd()[i]);
+          try { await DB.clearSteps(id); } catch (e) {}
+          if (ST.completed[id]) { delete ST.completed[id]; try { await DB.toggleSession(id, false); } catch (e) {} }
+          vWorkout(id);
+        }
+      };
+    }
+    wireMarkDone(view.querySelector("#markDone"));
     view.querySelector("#favBtn").onclick = async () => { const on = !ST.favorites[id]; if (on) ST.favorites[id] = true; else delete ST.favorites[id]; await DB.toggleFav(id, on); vWorkout(id); };
   }
 
