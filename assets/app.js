@@ -148,7 +148,7 @@
     };
     const sections = GROUPS.map(gr => {
       const cards = GUIDES.filter(g => g.group === gr.id).map(card).join("");
-      return `<div class="prem-grp"><div class="prem-h">\u2726 ${esc(gr.title)}</div><div class="prem-sub">${esc(gr.sub)}</div><div class="guides">${cards}</div></div>`;
+      return `<div class="prem-grp"><div class="prem-h">\u2726 ${esc(gr.title)}</div><div class="guides">${cards}</div></div>`;
     }).join("");
     return `<div class="premium">${sections}</div>`;
   }
@@ -175,8 +175,10 @@
     const btnS = ov.querySelector(".modal-single"), btnB = ov.querySelector(".modal-bundle");
     const say = (t, err) => { msg.style.display = "block"; msg.textContent = t; msg.style.color = err ? "#c0392b" : "var(--muted)"; };
     const unlocked = (grant) => { ST.owned = ST.owned || {}; ST.owned[grant] = true; close(); try { vHome(); } catch (e) {} };
+    const IS_DEVBOB = /devbob/i.test(location.hostname);
     const buy = (offerId, price, grant, cta, other) => async () => {
       const orig = cta.textContent; cta.disabled = true; other.disabled = true; cta.textContent = "Processing\u2026"; say("");
+      if (IS_DEVBOB) { say("Test unlock (devBob preview) \u2014 no charge."); setTimeout(() => unlocked(grant), 600); return; }
       try {
         const res = await callBuyGuides(offerId);
         if (res.status === "accepted" || res.status === "already_owned") return unlocked(grant);
