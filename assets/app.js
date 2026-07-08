@@ -222,7 +222,14 @@
     view.innerHTML = `<div class="greet"><div class="day">${new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}</div>
       <h2>Good day, ${esc(name)}</h2><p>A little movement today goes a long way.</p></div>
       <p class="page-sub" style="padding:8px 2px">Loading your day&hellip;</p>`;
-    const hero = DATA.workouts.find(w => w.cat === "Tai Chi Chair" && !w.locked) || DATA.workouts.find(w => !w.locked && (w.level || "").toLowerCase() === "beginner") || DATA.workouts.find(w => !w.locked) || DATA.workouts[0];
+    // Dynamic hero = the member's next video session: first one with real video that they
+    // haven't completed yet (advances as they finish each). Falls back gracefully.
+    const _hasVid = w => (w.steps || []).some(s => s.video);
+    const hero = DATA.workouts.find(w => _hasVid(w) && !w.locked && !ST.completed[w.id])
+      || DATA.workouts.find(w => _hasVid(w) && !w.locked)
+      || DATA.workouts.find(w => w.cat === "Tai Chi Chair" && !w.locked)
+      || DATA.workouts.find(w => !w.locked) || DATA.workouts[0];
+    const heroPill = ST.completed[hero.id] ? "✓ Completed" : "Up next";
     let activeFast = null, fastHist = [];
     try { if (!_recipes) _recipes = await DB.recipes(); if (!_week) _week = await ensureWeek(false); } catch (e) { /* plan optional */ }
     const acadCard = await homeAcademyCard();
@@ -244,7 +251,7 @@
         <h2>Good day, ${esc(name)}</h2><p>A little movement today goes a long way.</p></div>
       <div class="widgets"><div class="col">
         <div class="hero-card" data-go="${hero.id}"><img src="${img(hero.seed,800,500)}" alt=""><div class="veil"></div>
-          <div class="meta"><div class="pills"><span>${hero.min} min</span><span>${hero.level}</span><span>Today's session</span></div>
+          <div class="meta"><div class="pills"><span>${hero.min} min</span><span>${hero.level}</span><span>${heroPill}</span></div>
           <div class="title">${esc(hero.title)}</div></div><button class="play">▶</button></div>
         <a class="pdfcard" href="assets/tai-chi-walking2.pdf?v=1" download="Tai-Chi-Walking.pdf">
           <span class="pc-ic">🎁</span>
