@@ -174,7 +174,7 @@
     const msg = ov.querySelector(".modal-msg"), payBox = ov.querySelector(".modal-pay");
     const btnS = ov.querySelector(".modal-single"), btnB = ov.querySelector(".modal-bundle");
     const say = (t, err) => { msg.style.display = "block"; msg.textContent = t; msg.style.color = err ? "#c0392b" : "var(--muted)"; };
-    const unlocked = (grant) => { ST.owned = ST.owned || {}; ST.owned[grant] = true; close(); try { vHome(); } catch (e) {} setTimeout(() => { const el = document.querySelector(".premium"); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); }, 80); };
+    const unlocked = async (grant) => { ST.owned = ST.owned || {}; ST.owned[grant] = true; close(); try { await vHome(); } catch (e) {} requestAnimationFrame(() => requestAnimationFrame(() => { const el = document.querySelector(".premium"); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); })); };
     const IS_DEVBOB = /devbob/i.test(location.hostname);
     const buy = (offerId, price, grant, cta, other) => async () => {
       const orig = cta.textContent; cta.disabled = true; other.disabled = true; cta.textContent = "Processing\u2026"; say("");
