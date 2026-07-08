@@ -43,6 +43,12 @@ window.DB = (function () {
         min: s.duration_min, focus: s.focus, seed: s.thumb_seed, locked: s.unlock_rule,
         steps: s.steps || [],
       }));
+      // Overlay refreshed Tai Chi Walking step content (static file so new moves +
+      // per-move flow ship together as one batch, not via the shared DB).
+      try {
+        const wr = await fetch("assets/walking/steps.json?v=1", { cache: "no-cache" });
+        if (wr.ok) { const wov = await wr.json(); workouts.forEach(w => { if (wov[w.id]) { w.steps = wov[w.id]; if (w.steps[0] && w.steps[0].img) w.seed = w.steps[0].img; } }); }
+      } catch (e) { /* keep DB steps */ }
       const categories = [...new Set(workouts.map(w => w.cat))];
       const stress = {};
       (media || []).forEach(m => { (stress[m.kind] = stress[m.kind] || []).push({ id: m.id, title: m.title, min: m.duration_min, seed: m.thumb_seed }); });
@@ -57,15 +63,17 @@ window.DB = (function () {
   }
 
   async function loadUserState() {
-    const state = { completed: {}, favorites: {}, latest: {}, history: {}, owned: {} };
+    const state = { completed: {}, favorites: {}, latest: {}, history: {}, owned: {}, stepDone: {} };
     try {
-      const [{ data: prog }, { data: favs }, { data: checks }, { data: pays }] = await Promise.all([
+      const [{ data: prog }, { data: favs }, { data: checks }, { data: pays }, { data: stepRows }] = await Promise.all([
         SB.from("user_session_progress").select("session_id"),
         SB.from("favorites").select("item_type,item_id"),
         SB.from("progress_checkins").select("metric,value,text_value,recorded_at").order("recorded_at", { ascending: false }),
         SB.from("payments").select("kind"),
+        SB.from("user_session_step_progress").select("session_id,step_index"),
       ]);
       (prog || []).forEach(p => state.completed[p.session_id] = true);
+      (stepRows || []).forEach(r => { (state.stepDone[r.session_id] = state.stepDone[r.session_id] || {})[r.step_index] = true; });
       (pays || []).forEach(p => { if (p.kind && p.kind.indexOf("upsell:") === 0) state.owned[p.kind.slice(7)] = true; });
       (favs || []).forEach(f => state.favorites[f.item_id] = true);
       (checks || []).forEach(c => {
@@ -87,6 +95,12 @@ window.DB = (function () {
       if (on) { const u = (await SB.auth.getUser()).data.user; await SB.from("user_session_progress").insert({ user_id: u.id, session_id: id, status: "completed" }); }
       else await SB.from("user_session_progress").delete().eq("session_id", id);
     },
+    async markStep(sessionId, idx, on) {
+      const u = (await SB.auth.getUser()).data.user;
+      if (on) await SB.from("user_session_step_progress").upsert({ user_id: u.id, session_id: sessionId, step_index: idx }, { onConflict: "user_id,session_id,step_index" });
+      else await SB.from("user_session_step_progress").delete().eq("session_id", sessionId).eq("step_index", idx);
+    },
+    async clearSteps(sessionId) { await SB.from("user_session_step_progress").delete().eq("session_id", sessionId); },
     async toggleFav(id, on, type = "session") {
       if (on) { const u = (await SB.auth.getUser()).data.user; await SB.from("favorites").insert({ user_id: u.id, item_type: type, item_id: id }); }
       else await SB.from("favorites").delete().eq("item_id", id);
