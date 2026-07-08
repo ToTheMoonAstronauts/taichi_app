@@ -222,7 +222,7 @@
     view.innerHTML = `<div class="greet"><div class="day">${new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}</div>
       <h2>Good day, ${esc(name)}</h2><p>A little movement today goes a long way.</p></div>
       <p class="page-sub" style="padding:8px 2px">Loading your day&hellip;</p>`;
-    const hero = DATA.workouts.find(w => !w.locked && (w.level || "").toLowerCase() === "beginner") || DATA.workouts.find(w => !w.locked) || DATA.workouts[0];
+    const hero = DATA.workouts.find(w => w.cat === "Tai Chi Chair" && !w.locked) || DATA.workouts.find(w => !w.locked && (w.level || "").toLowerCase() === "beginner") || DATA.workouts.find(w => !w.locked) || DATA.workouts[0];
     let activeFast = null, fastHist = [];
     try { if (!_recipes) _recipes = await DB.recipes(); if (!_week) _week = await ensureWeek(false); } catch (e) { /* plan optional */ }
     const acadCard = await homeAcademyCard();
@@ -291,7 +291,7 @@
     const tabs = `<div class="tabs"><button data-t="workouts" class="${tab==='workouts'?'on':''}">Workouts</button><button data-t="plan" class="${tab==='plan'?'on':''}">Plan</button></div>`;
     let body = "";
     if (tab === "workouts") {
-      const ACTIVE = ["Tai Chi", "Tai Chi Chair", "Tai Chi Walking"];
+      const ACTIVE = ["Tai Chi Chair", "Tai Chi Walking"];
       const activeCats = DATA.categories.filter(c => ACTIVE.includes(c));
       const comingCats = DATA.categories.filter(c => !ACTIVE.includes(c));
       let active = sessionStorage.getItem("exfilter") || "All";
