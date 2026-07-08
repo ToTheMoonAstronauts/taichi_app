@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guide links (internal)</title>
+<style>
+  :root { --green:#2f6b45; --line:#e2eee7; --muted:#6b7d70; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:#1f3a24; margin:0; padding:32px 20px 60px; background:#f4f8f5; }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .note { color: var(--muted); font-size: 13px; margin: 0 0 24px; }
+  .g { background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:12px; }
+  .g h2 { font-size: 16px; margin: 0 0 8px; }
+  .g .links { display:flex; flex-wrap:wrap; gap:8px; }
+  .g a { display:inline-flex; align-items:center; gap:6px; text-decoration:none; font-size:14px; font-weight:600;
+         padding:7px 12px; border-radius:20px; border:1px solid var(--line); color:var(--green); background:#f3faf6; }
+  .g a.pdf { color:#b23b2e; background:#fdf1ef; border-color:#f0dccb; }
+  .foot { color: var(--muted); font-size: 12px; margin-top: 20px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Guide links &mdash; internal</h1>
+  <p class="note">All guides, unlocked, regardless of purchase. Not linked from anywhere. For testing only.</p>
+  <div id="list"></div>
+  <p class="foot">PDF links open the file directly &middot; HTML links open the illustrated web version.</p>
+</div>
+<script>
+  var BASE = "https://app.taimotion.com";
+  var GUIDES = [
+    { name: "Tai Chi Walking (free)", pdf: BASE + "/assets/tai-chi-walking.pdf", html: "https://taimotion.com/walking-guide" },
+    { name: "Joint & Mobility", pdf: BASE + "/assets/guide-joint-mobility.pdf", html: BASE + "/guides/joint-mobility.html" },
+    { name: "Stress-Relief Breathing", pdf: BASE + "/assets/guide-breathing.pdf", html: BASE + "/guides/breathing.html" },
+    { name: "Weekly Gentle Nutrition", pdf: BASE + "/assets/guide-nutrition.pdf", html: BASE + "/guides/nutrition.html" },
+    { name: "Sweet & Gentle: 25 Lighter Desserts", pdf: BASE + "/assets/guide-desserts.pdf", html: BASE + "/guides/desserts.html" },
+    { name: "Better Sleep", pdf: BASE + "/assets/guide-sleep.pdf", html: BASE + "/guides/sleep.html" },
+    { name: "Eating Without Guilt", pdf: BASE + "/assets/guide-eating.pdf", html: BASE + "/guides/eating.html" },
+    { name: "Aging Gracefully", pdf: BASE + "/assets/guide-aging.pdf", html: BASE + "/guides/aging.html" }
+  ];
+  document.getElementById("list").innerHTML = GUIDES.map(function (g) {
+    return '<div class="g"><h2>' + g.name + '</h2><div class="links">'
+      + '<a class="pdf" href="' + g.pdf + '" target="_blank" rel="noopener">PDF &#8599;</a>'
+      + '<a href="' + g.html + '" target="_blank" rel="noopener">HTML &#8599;</a>'
+      + '</div></div>';
+  }).join("");
+</script>
+</body>
+</html>
