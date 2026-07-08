@@ -125,68 +125,74 @@
 
   // ---- Premium guides (upsell content) ----
   const GUIDES = [
-    { id:"joint-mobility", title:"Joint & Mobility", sub:"Gentle seated joint-care routine", file:"assets/guide-joint-mobility.pdf?v=1", unlock:["essential_guides","essential_guides_onetime"], bundleId:"essential_guides", ready:true },
-    { id:"breathing", title:"Stress-Relief Breathing", sub:"Seated breathing to calm body & mind", file:"assets/guide-breathing.pdf?v=2", unlock:["essential_guides","essential_guides_onetime"], bundleId:"essential_guides", ready:true },
-    { id:"nutrition", title:"Weekly Gentle Nutrition", sub:"7 gentle habits for eating well", file:"assets/guide-nutrition.pdf?v=1", unlock:["essential_guides","essential_guides_onetime"], bundleId:"essential_guides", ready:true },
-    { id:"desserts", title:"Sweet & Gentle: 25 Lighter Desserts", sub:"25 lighter treats you'll love", file:"assets/guide-desserts.pdf?v=1", unlock:["essential_guides","essential_guides_onetime"], bundleId:"essential_guides", ready:true },
-    { id:"sleep", title:"Better Sleep", sub:"A Chair Tai Chi wind-down for restful nights", file:"assets/guide-sleep.pdf?v=1", unlock:["all_guides","guide_sleep"], bundleId:"all_guides", ready:true },
-    { id:"eating", title:"Eating Without Guilt", sub:"A calm, kind relationship with food", file:"assets/guide-eating.pdf?v=1", unlock:["all_guides","guide_eating"], bundleId:"all_guides", ready:true },
-    { id:"aging", title:"Aging Gracefully", sub:"7 pillars for a strong, calm, joyful later life", file:"assets/guide-aging.pdf?v=1", unlock:["all_guides","guide_aging"], bundleId:"all_guides", ready:true },
+    { id:"joint-mobility", title:"Joint & Mobility", sub:"Gentle seated joint-care routine", file:"assets/guide-joint-mobility.pdf?v=1", group:"essentials", offer:"guide_joint-mobility", unlock:["essential_guides","essential_guides_onetime","guide_joint-mobility"], ready:true },
+    { id:"breathing", title:"Stress-Relief Breathing", sub:"Seated breathing to calm body & mind", file:"assets/guide-breathing.pdf?v=2", group:"essentials", offer:"guide_breathing", unlock:["essential_guides","essential_guides_onetime","guide_breathing"], ready:true },
+    { id:"nutrition", title:"Weekly Gentle Nutrition", sub:"7 gentle habits for eating well", file:"assets/guide-nutrition.pdf?v=1", group:"essentials", offer:"guide_nutrition", unlock:["essential_guides","essential_guides_onetime","guide_nutrition"], ready:true },
+    { id:"desserts", title:"Sweet & Gentle: 25 Lighter Desserts", sub:"25 lighter treats you'll love", file:"assets/guide-desserts.pdf?v=1", group:"essentials", offer:"guide_desserts", unlock:["essential_guides","essential_guides_onetime","guide_desserts"], ready:true },
+    { id:"sleep", title:"Better Sleep", sub:"A Chair Tai Chi wind-down for restful nights", file:"assets/guide-sleep.pdf?v=1", group:"wellbeing", offer:"guide_sleep", unlock:["all_guides","guide_sleep"], ready:true },
+    { id:"eating", title:"Eating Without Guilt", sub:"A calm, kind relationship with food", file:"assets/guide-eating.pdf?v=1", group:"wellbeing", offer:"guide_eating", unlock:["all_guides","guide_eating"], ready:true },
+    { id:"aging", title:"Aging Gracefully", sub:"7 pillars for a strong, calm, joyful later life", file:"assets/guide-aging.pdf?v=1", group:"wellbeing", offer:"guide_aging", unlock:["all_guides","guide_aging"], ready:true },
   ];
-  const BUNDLES = {
-    essential_guides: { name:"Essential Guides bundle", price:"$9.99", upsell:"https://taimotion.com/upsell1.html",
-      includes:["Joint & Mobility","Stress-Relief Breathing","Weekly Gentle Nutrition","Sweet & Gentle: 25 Lighter Desserts"] },
-    all_guides: { name:"Wellbeing Guides bundle", price:"$19.99", upsell:"https://taimotion.com/upsell2.html",
-      includes:["Better Sleep","Eating Without Guilt","Aging Gracefully"] },
-  };
+  const GROUPS = [
+    { id:"essentials", bundle:"essential_guides", title:"Premium Essentials Guides", sub:"Movement, breathing & everyday nutrition", bundlePrice:"$38.99", allLabel:"all four guides" },
+    { id:"wellbeing", bundle:"all_guides", title:"Premium Wellbeing Guides", sub:"Sleep, mindset & healthy aging", bundlePrice:"$38.99", allLabel:"all three guides" },
+  ];
+  const SINGLE_PRICE = "$18.99";
   const guideOwned = (g) => g.unlock.some(u => ST && ST.owned && ST.owned[u]);
   function renderGuides() {
-    const cards = GUIDES.map(g => {
+    const card = g => {
       const owned = guideOwned(g);
       if (owned && g.ready) return `<a class="gcard owned" href="${g.file}" download="${esc(g.title)}.pdf"><span class="gc-ic">\uD83D\uDCD7</span><span class="gc-tx"><b>${esc(g.title)}</b><small>${esc(g.sub)}</small></span><span class="gc-dl">\u2B07</span></a>`;
       if (owned && !g.ready) return `<div class="gcard soon"><span class="gc-ic">\uD83D\uDCD7</span><span class="gc-tx"><b>${esc(g.title)}</b><small>Owned \u00B7 coming soon</small></span></div>`;
-      return `<div class="gcard locked" data-bundle="${g.bundleId}"><span class="gc-ic">\uD83D\uDD12</span><span class="gc-tx"><b>${esc(g.title)}</b><small>${esc(g.sub)}</small></span><span class="gc-lock">Unlock</span></div>`;
+      return `<div class="gcard locked" data-guide="${g.id}"><span class="gc-ic">\uD83D\uDD12</span><span class="gc-tx"><b>${esc(g.title)}</b><small>${esc(g.sub)}</small></span><span class="gc-lock">Unlock</span></div>`;
+    };
+    const sections = GROUPS.map(gr => {
+      const cards = GUIDES.filter(g => g.group === gr.id).map(card).join("");
+      return `<div class="prem-grp"><div class="prem-h">\u2726 ${esc(gr.title)}</div><div class="prem-sub">${esc(gr.sub)}</div><div class="guides">${cards}</div></div>`;
     }).join("");
-    return `<div class="premium"><div class="prem-h">\u2726 Premium Guides</div><div class="guides">${cards}</div></div>`;
+    return `<div class="premium">${sections}</div>`;
   }
   function wireGuides(root) {
-    root.querySelectorAll(".gcard.locked").forEach(c => c.onclick = () => openBundleModal(c.dataset.bundle));
+    root.querySelectorAll(".gcard.locked").forEach(c => c.onclick = () => openGuideModal(c.dataset.guide));
   }
-  function openBundleModal(bundleId) {
-    const b = BUNDLES[bundleId]; if (!b) return;
-    const inc = b.includes.map(x => `<li>${esc(x)}</li>`).join("");
+  function openGuideModal(guideId) {
+    const g = GUIDES.find(x => x.id === guideId); if (!g) return;
+    const gr = GROUPS.find(x => x.id === g.group); if (!gr) return;
     const ov = document.createElement("div"); ov.className = "modal-ov";
     ov.innerHTML = `<div class="modal"><button class="modal-x" aria-label="Close">\u00D7</button>
       <div class="modal-badge">\uD83D\uDD12 Locked</div>
-      <h3>Unlock the ${esc(b.name)}</h3>
-      <p class="modal-sub">Get instant access to all of these downloadable guides:</p>
-      <ul class="modal-inc">${inc}</ul>
-      <div class="modal-price">One-time <b>${esc(b.price)}</b> \u00B7 yours to keep</div>
-      <div class="modal-msg" style="display:none"></div><div class="modal-pay" style="display:none;margin:8px 0 12px"></div><button class="btn block modal-cta">Unlock now</button>
-      <p class="modal-fine">Securely charged to your card on file. Instant access.</p></div>`;
+      <h3>${esc(g.title)}</h3>
+      <p class="modal-sub">${esc(g.sub)}</p>
+      <div class="modal-msg" style="display:none"></div><div class="modal-pay" style="display:none;margin:8px 0 12px"></div>
+      <button class="btn block modal-single">Unlock this guide \u2014 ${SINGLE_PRICE}</button>
+      <button class="btn block ghost modal-bundle">Get ${esc(gr.allLabel)} \u2014 ${gr.bundlePrice}</button>
+      <p class="modal-fine">One-time \u00B7 yours to keep \u00B7 charged to your card on file.</p></div>`;
     document.body.appendChild(ov);
     const close = () => ov.remove();
     ov.querySelector(".modal-x").onclick = close;
     ov.onclick = (e) => { if (e.target === ov) close(); };
-    const msg = ov.querySelector(".modal-msg"), payBox = ov.querySelector(".modal-pay"), cta = ov.querySelector(".modal-cta");
+    const msg = ov.querySelector(".modal-msg"), payBox = ov.querySelector(".modal-pay");
+    const btnS = ov.querySelector(".modal-single"), btnB = ov.querySelector(".modal-bundle");
     const say = (t, err) => { msg.style.display = "block"; msg.textContent = t; msg.style.color = err ? "#c0392b" : "var(--muted)"; };
-    const unlocked = () => { ST.owned = ST.owned || {}; ST.owned[bundleId] = true; close(); try { vHome(); } catch (e) {} };
-    cta.onclick = async () => {
-      cta.disabled = true; cta.textContent = "Processing\u2026"; say("");
+    const unlocked = (grant) => { ST.owned = ST.owned || {}; ST.owned[grant] = true; close(); try { vHome(); } catch (e) {} };
+    const buy = (offerId, price, grant, cta, other) => async () => {
+      const orig = cta.textContent; cta.disabled = true; other.disabled = true; cta.textContent = "Processing\u2026"; say("");
       try {
-        const res = await callBuyGuides(bundleId);
-        if (res.status === "accepted" || res.status === "already_owned") return unlocked();
-        if (res.status === "requires_action" && res.clientSecret) return payPopup(res.clientSecret, res.pk, b.price, payBox, cta, say, unlocked);
-        say("Sorry, we couldn't complete that. Please try again.", true); cta.disabled = false; cta.textContent = "Try again";
-      } catch (e) { say("Something went wrong. Please try again.", true); cta.disabled = false; cta.textContent = "Try again"; }
+        const res = await callBuyGuides(offerId);
+        if (res.status === "accepted" || res.status === "already_owned") return unlocked(grant);
+        if (res.status === "requires_action" && res.clientSecret) return payPopup(res.clientSecret, res.pk, price, payBox, cta, say, () => unlocked(grant));
+        say("Sorry, we couldn't complete that. Please try again.", true); cta.disabled = false; other.disabled = false; cta.textContent = orig;
+      } catch (e) { say("Something went wrong. Please try again.", true); cta.disabled = false; other.disabled = false; cta.textContent = orig; }
     };
+    btnS.onclick = buy(g.offer, SINGLE_PRICE, g.offer, btnS, btnB);
+    btnB.onclick = buy(gr.bundle, gr.bundlePrice, gr.bundle, btnB, btnS);
   }
-  async function callBuyGuides(bundle) {
+  async function callBuyGuides(item) {
     const { data } = await SB.auth.getSession();
     const token = data && data.session && data.session.access_token;
     const r = await fetch(window.SUPA.url + "/functions/v1/buy-guides", {
       method: "POST", headers: { "Authorization": "Bearer " + token, "apikey": window.SUPA.key, "Content-Type": "application/json" },
-      body: JSON.stringify({ bundle }),
+      body: JSON.stringify({ item }),
     });
     return r.json();
   }

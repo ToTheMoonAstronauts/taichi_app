@@ -484,7 +484,9 @@ h1.page{font-family:var(--serif);font-size:29px;font-weight:600;letter-spacing:-
 
 /* ── Premium Guides (upsell content) ── */
 .premium{margin:16px 0 4px}
-.prem-h{display:flex;align-items:center;gap:6px;color:var(--primary);font-weight:800;letter-spacing:.5px;font-size:12px;text-transform:uppercase;margin:0 2px 8px}
+.prem-h{display:flex;align-items:center;gap:6px;color:var(--primary);font-weight:800;letter-spacing:.5px;font-size:12px;text-transform:uppercase;margin:0 2px 2px}
+.prem-grp{margin-bottom:16px}
+.prem-sub{font-size:12px;color:var(--muted);margin:0 2px 8px}
 .guides{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:640px){.guides{grid-template-columns:1fr}}
 .gcard{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;text-decoration:none;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.04)}
