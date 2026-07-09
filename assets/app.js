@@ -1131,7 +1131,7 @@
     const p = PROFILE || {};
     const units = p.measurement_system || "metric";
     const impU = units === "imperial";
-    const isGreen = (window.TM ? TM.get() : (document.documentElement.getAttribute("data-theme") || "brown")) === "green";
+    const isBrown = (window.TM ? TM.get() : (document.documentElement.getAttribute("data-theme") || "green")) !== "green";
     let hFt = "", hIn = "";
     if (impU && p.height_cm) { const ti = Math.round(p.height_cm / 2.54); hFt = Math.floor(ti / 12); hIn = ti % 12; }
     view.innerHTML = `
@@ -1161,8 +1161,8 @@
       <div class="card" style="margin-top:16px">
         <div class="sec-label">APPEARANCE</div>
         <div class="row-toggle">
-          <div><div style="font-weight:700">Mint palette</div><div class="page-sub" style="margin:2px 0 0">Switch from the default warm theme to a calm green look.</div></div>
-          <button class="tgl ${isGreen?'on':''}" id="pf-theme" role="switch" aria-checked="${isGreen}" aria-label="Mint palette"><span class="knob"></span></button>
+          <div><div style="font-weight:700">Earthy palette</div><div class="page-sub" style="margin:2px 0 0">Switch from the default green look to a warm, earthy theme.</div></div>
+          <button class="tgl ${isBrown?'on':''}" id="pf-theme" role="switch" aria-checked="${isBrown}" aria-label="Earthy palette"><span class="knob"></span></button>
         </div>
       </div>
 
@@ -1204,9 +1204,9 @@
     });
     const tgl = view.querySelector("#pf-theme");
     if (tgl) tgl.onclick = () => {
-      const next = tgl.classList.contains("on") ? "brown" : "green";
+      const next = tgl.classList.contains("on") ? "green" : "brown";
       if (window.TM) TM.set(next);
-      const on = next === "green";
+      const on = next === "brown";
       tgl.classList.toggle("on", on); tgl.setAttribute("aria-checked", on);
     };
     view.querySelector("#pf-logout").onclick = () => AUTH.signOut();

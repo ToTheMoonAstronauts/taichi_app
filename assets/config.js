@@ -16,7 +16,7 @@
       writeCookie(theme);
       try { localStorage.setItem("tm_theme", theme); } catch (e) {}
     } else {
-      theme = readCookie() || (() => { try { return localStorage.getItem("tm_theme"); } catch (e) { return null; } })() || "brown";
+      theme = readCookie() || (() => { try { return localStorage.getItem("tm_theme"); } catch (e) { return null; } })() || "green";
     }
     document.documentElement.setAttribute("data-theme", theme);
     const applyLogo = (t) => document.querySelectorAll("img.logo").forEach(i => i.setAttribute("src", t === "green" ? "assets/logo.webp" : "assets/logo2.webp"));
@@ -25,7 +25,7 @@
     else document.addEventListener("DOMContentLoaded", () => apply(document.documentElement.getAttribute("data-theme")));
     // Expose a setter so in-app UI (Profile toggle) can flip the palette live.
     window.TM = {
-      get: () => document.documentElement.getAttribute("data-theme") || "brown",
+      get: () => document.documentElement.getAttribute("data-theme") || "green",
       set: (t) => {
         t = t === "green" ? "green" : "brown";
         writeCookie(t);
