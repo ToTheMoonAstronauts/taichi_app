@@ -25,6 +25,7 @@
     { id: "home", label: "Home", icon: "🏠" }, { id: "meals", label: "Meals", icon: "🍽️" },
     { id: "exercises", label: "Exercises", icon: "🧘" }, { id: "tracking", label: "Tracking", icon: "📈" },
     { id: "academy", label: "Academy", icon: "📖" },
+    { id: "guides", label: "Premium Guides", icon: "✦" },
     { id: "challenges", label: "Challenges", icon: "🏆" }, { id: "favorites", label: "Favorites", icon: "♡" },
   ];
   const MOBILE_NAV = ["home", "exercises", "meals", "tracking", "academy"];
@@ -154,6 +155,13 @@
   function wireGuides(root) {
     root.querySelectorAll(".gcard.locked").forEach(c => c.onclick = () => openGuideModal(c.dataset.guide));
   }
+  // Dedicated Premium Guides page (moved off Home).
+  function vGuides() {
+    view.innerHTML = `
+      <div class="greet"><h2>Premium Guides</h2><p>In-depth guides to support your movement, sleep, nutrition &amp; more.</p></div>
+      ${renderGuides()}`;
+    wireGuides(view);
+  }
   function openGuideModal(guideId) {
     const g = GUIDES.find(x => x.id === guideId); if (!g) return;
     const gr = GROUPS.find(x => x.id === g.group); if (!gr) return;
@@ -173,7 +181,7 @@
     const msg = ov.querySelector(".modal-msg"), payBox = ov.querySelector(".modal-pay");
     const btnS = ov.querySelector(".modal-single"), btnB = ov.querySelector(".modal-bundle");
     const say = (t, err) => { msg.style.display = "block"; msg.textContent = t; msg.style.color = err ? "#c0392b" : "var(--muted)"; };
-    const unlocked = async (grant) => { ST.owned = ST.owned || {}; ST.owned[grant] = true; close(); try { await vHome(); } catch (e) {} requestAnimationFrame(() => requestAnimationFrame(() => { const el = document.querySelector(".premium"); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); })); };
+    const unlocked = async (grant) => { ST.owned = ST.owned || {}; ST.owned[grant] = true; close(); try { route(); } catch (e) {} requestAnimationFrame(() => requestAnimationFrame(() => { const el = document.querySelector(".premium"); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); })); };
     const buy = (offerId, price, grant, cta, other) => async () => {
       const orig = cta.textContent; cta.disabled = true; other.disabled = true; cta.textContent = "Processing\u2026"; say("");
       try {
@@ -266,10 +274,9 @@
         <div class="card mini"><div><div style="font-weight:700">Self-assessment</div><div class="v" style="font-size:14px;color:var(--muted)">${selfSub}</div></div><a class="btn ghost" href="#/track/mood">Log</a></div>
         <div class="card mini"><div><div style="font-weight:700">Fasting</div><div class="v" style="font-size:14px;color:var(--muted)">${fastSub}</div></div><a class="btn ghost" href="#/track/fasting">Open</a></div>
       </div></div>
-      ${renderGuides()}
+      <a class="home-settings" href="#/guides"><span class="hs-ic">✦</span><span class="hs-txt"><b>Premium Guides</b><small>Your unlocked &amp; available guides</small></span><span class="hs-ch">›</span></a>
       <a class="home-settings" href="#/profile"><span class="hs-ic">⚙️</span><span class="hs-txt"><b>Settings</b><small>Profile, units, palette &amp; more</small></span><span class="hs-ch">›</span></a>`;
     view.querySelector(".hero-card").onclick = () => location.hash = "#/workout/" + hero.id;
-    wireGuides(view);
     view.querySelectorAll("[data-mact]").forEach(b => b.onclick = async (e) => {
       e.preventDefault();
       const today = PLAN.isoDate(new Date()), slot = b.dataset.slot, status = b.dataset.mact === "done" ? "done" : "skipped";
@@ -1419,6 +1426,7 @@
        track: () => vTrack(a), stress: () => vStress(a), favorites: vFavorites,
        profile: vProfile, subscription: vManageSub, install: vInstall,
        academy: vAcademy, lesson: () => vLesson(a),
+       guides: vGuides,
        challenges: () => vChallenges(a), challenge: () => vChallenge(a),
      }[r] || vHome)();
   }
