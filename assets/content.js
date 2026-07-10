@@ -20,8 +20,8 @@ window.CONTENT = {
     // Tai Chi Chair (seated — primary for our audience)
     { id: "cc1", cat: "Tai Chi Chair", title: "Calm Chair Flex", level: "Beginner", min: 5, focus: "Stretching & chair-supported", seed: "chair-flex" },
     { id: "cc2", cat: "Tai Chi Chair", title: "Seated Strength Lift", level: "Beginner", min: 6, focus: "Upper body & strength", seed: "chair-strength" },
-    { id: "cc3", cat: "Tai Chi Chair", title: "Gentle Dawn Movement", level: "Beginner", min: 5, focus: "Mobility & chair-supported", seed: "chair-dawn" },
-    { id: "cc4", cat: "Tai Chi Chair", title: "Seated Power Lift", level: "Advanced", min: 9, focus: "Strength", seed: "chair-power", locked: "Complete 9 workouts to unlock" },
+    { id: "cc3", cat: "Tai Chi Chair", title: "Gentle Dawn Movement", level: "Beginner", min: 10, focus: "Mobility & chair-supported", seed: "chair-dawn" },
+    { id: "cc4", cat: "Tai Chi Chair", title: "Gentle Core Rise", level: "Beginner", min: 7, focus: "Core & obliques", seed: "chair-core" },
 
     { id: "yg1", cat: "Yoga", title: "Chair Yoga Unwind", level: "Beginner", min: 6, focus: "Flexibility", seed: "yoga-unwind" },
     { id: "yg2", cat: "Yoga", title: "Morning Gentle Stretch", level: "Beginner", min: 7, focus: "Mobility", seed: "yoga-morning" },
