@@ -33,11 +33,10 @@
     const nav = document.getElementById("nav"), bn = document.getElementById("bottomnav");
     if (nav) nav.innerHTML = NAV.map(n => `<a href="#/${n.id}" class="${active === n.id ? "active" : ""}"><span class="ic">${n.icon}</span>${n.label}</a>`).join("");
     if (bn) bn.innerHTML = NAV.filter(n => MOBILE_NAV.includes(n.id)).map(n => `<a href="#/${n.id}" class="${active === n.id ? "active" : ""}"><span class="ic">${n.icon}</span>${n.label}</a>`).join("");
-    const name = (PROFILE && (PROFILE.name || PROFILE.email)) || "You";
-    const av = document.getElementById("avatar"), em = document.getElementById("acctEmail");
-    const goProfile = () => { location.hash = "#/profile"; };
-    if (av) { av.textContent = (name[0] || "Y").toUpperCase(); av.style.cursor = "pointer"; av.onclick = goProfile; }
-    if (em) { em.textContent = name; em.style.cursor = "pointer"; em.title = "Profile & settings"; em.onclick = goProfile; }
+    const em = document.getElementById("acctEmail");
+    if (em) em.textContent = (PROFILE && PROFILE.email) || "your account";
+    const setLink = document.getElementById("acctSettings");
+    if (setLink) setLink.classList.toggle("active", active === "profile");
   }
 
   // ---------- Auth / gate ----------
@@ -1172,8 +1171,8 @@
 
       <div class="card listcard" style="margin-top:16px">
         <div class="sec-label" style="padding:18px 18px 0">HELP &amp; LEGAL</div>
-        <a class="lrow" href="https://taimotion.com" target="_blank"><span>Privacy Policy</span><span class="chev">›</span></a>
-        <a class="lrow" href="https://taimotion.com" target="_blank"><span>Terms of Service</span><span class="chev">›</span></a>
+        <a class="lrow" href="https://taimotion.com/privacy-policy.html" target="_blank" rel="noopener"><span>Privacy Policy</span><span class="chev">›</span></a>
+        <a class="lrow" href="https://taimotion.com/terms-of-services.html" target="_blank" rel="noopener"><span>Terms of Service</span><span class="chev">›</span></a>
         <a class="lrow" href="mailto:hello@taimotion.com"><span>Support</span><span class="chev">›</span></a>
       </div>
 
