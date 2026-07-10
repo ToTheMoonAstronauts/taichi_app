@@ -140,13 +140,13 @@
 
   // ---- Premium guides (upsell content) ----
   const GUIDES = [
-    { id:"joint-mobility", cover:"https://pixtozeghxwiidpnloih.supabase.co/storage/v1/object/public/recipe-images/guides/joint-mobility.jpg", title:"Joint & Mobility", sub:"Gentle seated joint-care routine", file:"assets/guide-joint-mobility.pdf?v=1", group:"essentials", offer:"guide_joint-mobility", unlock:["essential_guides","essential_guides_onetime","guide_joint-mobility"], ready:true },
-    { id:"breathing", cover:"https://pixtozeghxwiidpnloih.supabase.co/storage/v1/object/public/recipe-images/guides/breathing.jpg", title:"Stress-Relief Breathing", sub:"Seated breathing to calm body & mind", file:"assets/guide-breathing.pdf?v=2", group:"essentials", offer:"guide_breathing", unlock:["essential_guides","essential_guides_onetime","guide_breathing"], ready:true },
-    { id:"nutrition", cover:"https://pixtozeghxwiidpnloih.supabase.co/storage/v1/object/public/recipe-images/guides/nutrition.jpg", title:"Weekly Gentle Nutrition", sub:"7 gentle habits for eating well", file:"assets/guide-nutrition.pdf?v=1", group:"essentials", offer:"guide_nutrition", unlock:["essential_guides","essential_guides_onetime","guide_nutrition"], ready:true },
-    { id:"desserts", cover:"https://pixtozeghxwiidpnloih.supabase.co/storage/v1/object/public/recipe-images/guides/desserts.jpg", title:"Sweet & Gentle: 25 Lighter Desserts", sub:"25 lighter treats you'll love", file:"assets/guide-desserts.pdf?v=1", group:"essentials", offer:"guide_desserts", unlock:["essential_guides","essential_guides_onetime","guide_desserts"], ready:true },
-    { id:"sleep", cover:"https://pixtozeghxwiidpnloih.supabase.co/storage/v1/object/public/recipe-images/guides/sleep.jpg", title:"Better Sleep", sub:"A Chair Tai Chi wind-down for restful nights", file:"assets/guide-sleep.pdf?v=1", group:"wellbeing", offer:"guide_sleep", unlock:["all_guides","guide_sleep"], ready:true },
-    { id:"eating", cover:"https://pixtozeghxwiidpnloih.supabase.co/storage/v1/object/public/recipe-images/guides/eating.jpg", title:"Eating Without Guilt", sub:"A calm, kind relationship with food", file:"assets/guide-eating.pdf?v=1", group:"wellbeing", offer:"guide_eating", unlock:["all_guides","guide_eating"], ready:true },
-    { id:"aging", cover:"https://pixtozeghxwiidpnloih.supabase.co/storage/v1/object/public/recipe-images/guides/aging.jpg", title:"Aging Gracefully", sub:"7 pillars for a strong, calm, joyful later life", file:"assets/guide-aging.pdf?v=1", group:"wellbeing", offer:"guide_aging", unlock:["all_guides","guide_aging"], ready:true },
+    { id:"joint-mobility", cover:"https://loremflickr.com/300/300/stretching,exercise?lock=11", title:"Joint & Mobility", sub:"Gentle seated joint-care routine", file:"assets/guide-joint-mobility.pdf?v=1", group:"essentials", offer:"guide_joint-mobility", unlock:["essential_guides","essential_guides_onetime","guide_joint-mobility"], ready:true },
+    { id:"breathing", cover:"https://loremflickr.com/300/300/meditation,calm?lock=22", title:"Stress-Relief Breathing", sub:"Seated breathing to calm body & mind", file:"assets/guide-breathing.pdf?v=2", group:"essentials", offer:"guide_breathing", unlock:["essential_guides","essential_guides_onetime","guide_breathing"], ready:true },
+    { id:"nutrition", cover:"https://loremflickr.com/300/300/healthy,food?lock=33", title:"Weekly Gentle Nutrition", sub:"7 gentle habits for eating well", file:"assets/guide-nutrition.pdf?v=1", group:"essentials", offer:"guide_nutrition", unlock:["essential_guides","essential_guides_onetime","guide_nutrition"], ready:true },
+    { id:"desserts", cover:"https://loremflickr.com/300/300/dessert,fruit?lock=44", title:"Sweet & Gentle: 25 Lighter Desserts", sub:"25 lighter treats you'll love", file:"assets/guide-desserts.pdf?v=1", group:"essentials", offer:"guide_desserts", unlock:["essential_guides","essential_guides_onetime","guide_desserts"], ready:true },
+    { id:"sleep", cover:"https://loremflickr.com/300/300/sleep,bed?lock=55", title:"Better Sleep", sub:"A Chair Tai Chi wind-down for restful nights", file:"assets/guide-sleep.pdf?v=1", group:"wellbeing", offer:"guide_sleep", unlock:["all_guides","guide_sleep"], ready:true },
+    { id:"eating", cover:"https://loremflickr.com/300/300/salad,vegetables?lock=66", title:"Eating Without Guilt", sub:"A calm, kind relationship with food", file:"assets/guide-eating.pdf?v=1", group:"wellbeing", offer:"guide_eating", unlock:["all_guides","guide_eating"], ready:true },
+    { id:"aging", cover:"https://loremflickr.com/300/300/senior,yoga?lock=77", title:"Aging Gracefully", sub:"7 pillars for a strong, calm, joyful later life", file:"assets/guide-aging.pdf?v=1", group:"wellbeing", offer:"guide_aging", unlock:["all_guides","guide_aging"], ready:true },
   ];
   const GROUPS = [
     { id:"essentials", bundle:"essential_guides", title:"Premium Essentials Guides", sub:"Movement, breathing & everyday nutrition", bundlePrice:"$38.99", allLabel:"all four guides" },
@@ -157,10 +157,10 @@
   function renderGuides() {
     const card = g => {
       const owned = guideOwned(g);
-      const cov = g.cover ? `<div class="gc-cov"><img src="${g.cover}" alt=""></div>` : "";
-      if (owned && g.ready) return `<a class="gcard owned" href="${g.file}" download="${esc(g.title)}.pdf">${cov}<div class="gc-row"><span class="gc-ic">\uD83D\uDCD7</span><span class="gc-tx"><b>${esc(g.title)}</b><small>${esc(g.sub)}</small></span><span class="gc-dl">\u2B07</span></div></a>`;
-      if (owned && !g.ready) return `<div class="gcard soon">${cov}<div class="gc-row"><span class="gc-ic">\uD83D\uDCD7</span><span class="gc-tx"><b>${esc(g.title)}</b><small>Owned \u00B7 coming soon</small></span></div></div>`;
-      return `<div class="gcard locked" data-guide="${g.id}">${cov}<div class="gc-row"><span class="gc-ic">\uD83D\uDD12</span><span class="gc-tx"><b>${esc(g.title)}</b><small>${esc(g.sub)}</small></span><span class="gc-lock">Unlock</span></div></div>`;
+      const th = `<div class="gc-thumb"><img src="${g.cover}" alt="" loading="lazy"></div>`;
+      if (owned && g.ready) return `<a class="gcard owned" href="${g.file}" download="${esc(g.title)}.pdf">${th}<span class="gc-tx"><b>${esc(g.title)}</b><small>${esc(g.sub)}</small></span><span class="gc-dl">⬇</span></a>`;
+      if (owned && !g.ready) return `<div class="gcard soon">${th}<span class="gc-tx"><b>${esc(g.title)}</b><small>Owned · coming soon</small></span></div>`;
+      return `<div class="gcard locked" data-guide="${g.id}">${th}<span class="gc-tx"><b>${esc(g.title)}</b><small>${esc(g.sub)}</small></span><span class="gc-lock">Unlock</span></div>`;
     };
     const sections = GROUPS.map(gr => {
       const cards = GUIDES.filter(g => g.group === gr.id).map(card).join("");
