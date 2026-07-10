@@ -78,6 +78,30 @@ h1.page{font-family:var(--serif);font-size:29px;font-weight:600;letter-spacing:-
 /* hero video card */
 .hero-card{position:relative;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);min-height:240px;display:flex;align-items:flex-end;color:#fff}
 @media (min-width:769px){ .hero-card{min-height:320px} }
+/* ── Redesigned Home ── */
+.home-wrap{max-width:800px;margin:0 auto}
+.home-wrap .hero-card .meta{padding:20px 22px}
+.hero-start{margin-top:14px;background:#fff;color:var(--primary-dark);border:none;border-radius:10px;padding:12px 20px;font-size:16px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;box-shadow:0 4px 12px rgba(0,0,0,.18)}
+.hsec{font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:22px 2px 10px}
+.htiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.htile{background:#fff;border-radius:12px;padding:16px 10px;text-align:center;text-decoration:none;color:var(--ink);display:flex;flex-direction:column;align-items:center;gap:3px;box-shadow:var(--shadow)}
+.htile .ht-ic{font-size:24px;margin-bottom:2px}
+.htile b{font-size:15px}
+.htile small{color:var(--muted);font-size:12px}
+.hmeals .hmeal{background:#fff;border-radius:12px;overflow:hidden;text-decoration:none;color:var(--ink);display:flex;flex-direction:column;box-shadow:var(--shadow)}
+.hmeal img,.hmeal .hm-ph{width:100%;height:104px;object-fit:cover;background:var(--bg);display:block}
+.hmeal .hm-lbl{padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.hmeal .ml-k{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--primary-dark)}
+.hmeal .hm-lbl b{font-size:14px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hmeal .hm-lbl small{color:var(--muted);font-size:12px}
+.hnums{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.hnum{background:#fff;border-radius:12px;padding:16px;display:flex;justify-content:space-between;align-items:center;text-decoration:none;color:var(--ink);box-shadow:var(--shadow)}
+.hnum .hn-k{font-size:13px;color:var(--muted)}
+.hnum .hn-v{font-size:20px;font-weight:800}
+.hnum .hn-v small{font-size:13px;color:var(--muted);font-weight:600}
+.hnum .hn-go{color:var(--primary-dark);font-weight:700;font-size:14px}
+.hbanner{margin-top:20px}
+@media (max-width:768px){ .htiles{gap:8px} .htile{padding:14px 6px} }
 .hero-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .hero-card .veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.55))}
 .hero-card .meta{position:relative;padding:18px 20px;width:100%}

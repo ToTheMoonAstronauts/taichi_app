@@ -122,6 +122,21 @@
         <a class="btn block" href="#/lesson/${cur.id}">Start lesson ${idx} ›</a></div>`;
     } catch (e) { return ""; }
   }
+  // Three image blocks for today's meals (breakfast / lunch / dinner) on Home.
+  function homeMealsRow() {
+    try {
+      const today = PLAN.isoDate(new Date());
+      const inWeek = _week && _recipes && today >= _week.startISO && today <= _week.endISO;
+      const cards = ["breakfast", "lunch", "dinner"].map(slot => {
+        const it = inWeek ? _week.items[today + "|" + slot] : null;
+        const r = it && recipeById(it.recipe_id);
+        if (!r) return `<a class="hmeal" href="#/meals"><div class="hm-ph"></div><div class="hm-lbl"><span class="ml-k">${CAP(slot)}</span><b>Tap to plan</b></div></a>`;
+        const done = it.status === "done";
+        return `<a class="hmeal" href="#/recipe/${r.id}"><img src="${rimg(r,300,200)}" alt=""><div class="hm-lbl"><span class="ml-k">${CAP(slot)}${done ? " ✓" : ""}</span><b>${esc(r.title)}</b><small>${r.kcal} kcal</small></div></a>`;
+      }).join("");
+      return `<div class="htiles hmeals">${cards}</div>`;
+    } catch (e) { return `<div class="htiles hmeals"></div>`; }
+  }
 
   // ---- Premium guides (upsell content) ----
   const GUIDES = [
@@ -252,37 +267,50 @@
     let fastSub = "Start a fast";
     if (activeFast) { const s = (Date.now() - new Date(activeFast.started_at)) / 3600000; fastSub = `⏱ Fasting now · ${Math.floor(s)}h ${Math.floor((s % 1) * 60)}m`; }
     else { const today = PLAN.isoDate(new Date()); const f = fastHist.find(x => PLAN.isoDate(new Date(x.started_at)) === today); if (f) { const d = (new Date(f.ended_at) - new Date(f.started_at)) / 3600000; fastSub = `✓ Done today · ${Math.floor(d)}h ${Math.round((d % 1) * 60)}m`; } }
+    // Today's meal progress (for the "Today" tile)
+    let mealsDone = 0, mealsTotal = 0;
+    try { const _t = PLAN.isoDate(new Date()); if (_week && _t >= _week.startISO && _t <= _week.endISO) SLOTS.forEach(sl => { const it = _week.items[_t + "|" + sl]; if (it) { mealsTotal++; if (it.status === "done") mealsDone++; } }); } catch (e) {}
     if (_n !== _nav) return;   // user navigated away while Home was loading — don't clobber the new view
     view.innerHTML = `
+      <div class="home-wrap">
       <div class="greet"><div class="day">${new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}</div>
         <h2>Good day, ${esc(name)}</h2><p>A little movement today goes a long way.</p></div>
-      <div class="widgets"><div class="col">
-        <div class="hero-card" data-go="${hero.id}"><img src="${img(hero.seed,800,500)}" alt=""><div class="veil"></div>
-          <div class="meta"><div class="pills"><span>${hero.min} min</span><span>${hero.level}</span><span>${heroPill}</span></div>
-          <div class="title">${esc(hero.title)}</div></div><button class="play">▶</button></div>
-        <a class="pdfcard" href="assets/tai-chi-walking2.pdf?v=1" download="Tai-Chi-Walking.pdf">
-          <span class="pc-ic">🎁</span>
-          <span class="pc-txt"><span class="pc-t">Download Free PDF: Tai Chi Walking</span><span class="pc-s">Click here to download</span></span>
-          <span class="pc-dl">⬇</span></a>
-        ${homeMealCard()}
-        ${acadCard}
-      </div><div class="col">
-        ${homeCaloriesCard()}
-        <div class="card mini"><div><div style="font-weight:700">Weight</div><div class="v">${wValH} <small>${wUnitH}</small></div></div><a class="btn ghost" href="#/track/weight">Log</a></div>
-        <div class="card mini"><div><div style="font-weight:700">Water</div><div class="v">${ST.latest.water??0} <small>glasses</small></div></div><a class="btn ghost" href="#/track/water">Log</a></div>
-        <div class="card mini"><div><div style="font-weight:700">Balance</div><div class="v">${ST.latest.balance??"—"} <small>/10</small></div></div><a class="btn ghost" href="#/track/balance">Log</a></div>
-        <div class="card mini"><div><div style="font-weight:700">Self-assessment</div><div class="v" style="font-size:14px;color:var(--muted)">${selfSub}</div></div><a class="btn ghost" href="#/track/mood">Log</a></div>
-        <div class="card mini"><div><div style="font-weight:700">Fasting</div><div class="v" style="font-size:14px;color:var(--muted)">${fastSub}</div></div><a class="btn ghost" href="#/track/fasting">Open</a></div>
-      </div></div>
+
+      <div class="hero-card" data-go="${hero.id}"><img src="${img(hero.seed,900,520)}" alt=""><div class="veil"></div>
+        <div class="meta"><div class="pills"><span>${heroPill}</span><span>${hero.min} min · ${hero.level}</span></div>
+          <div class="title">${esc(hero.title)}</div>
+          <button class="hero-start">▶ Start today's session</button></div></div>
+
+      <div class="hsec">Today</div>
+      <div class="htiles">
+        <a class="htile" href="#/exercises"><span class="ht-ic">🧘</span><b>Move</b><small>${ST.completed[hero.id] ? "Done ✓" : "Not yet"}</small></a>
+        <a class="htile" href="#/meals"><span class="ht-ic">🍽️</span><b>Meals</b><small>${mealsTotal ? mealsDone + " of " + mealsTotal : "Plan"}</small></a>
+        <a class="htile" href="#/track/mood"><span class="ht-ic">🙂</span><b>Check-in</b><small>${mi >= 0 ? "Logged" : "Log mood"}</small></a>
+      </div>
+
+      <div class="hsec">Today's meals</div>
+      ${homeMealsRow()}
+
+      <div class="hsec">Academy</div>
+      ${acadCard}
+
+      <div class="hsec">Your numbers</div>
+      <div class="hnums">
+        <a class="hnum" href="#/track/weight"><div><div class="hn-k">Weight</div><div class="hn-v">${wValH} <small>${wUnitH}</small></div></div><span class="hn-go">Log</span></a>
+        <a class="hnum" href="#/track/water"><div><div class="hn-k">Water</div><div class="hn-v">${ST.latest.water??0} <small>glasses</small></div></div><span class="hn-go">Log</span></a>
+        <a class="hnum" href="#/track/balance"><div><div class="hn-k">Balance</div><div class="hn-v">${ST.latest.balance??"—"} <small>/10</small></div></div><span class="hn-go">Log</span></a>
+        <a class="hnum" href="#/track/fasting"><div><div class="hn-k">Fasting</div><div class="hn-v" style="font-size:15px;font-weight:600;color:var(--muted)">${fastSub}</div></div><span class="hn-go">Open</span></a>
+      </div>
+
+      <a class="pdfcard hbanner" href="assets/tai-chi-walking2.pdf?v=1" download="Tai-Chi-Walking.pdf">
+        <span class="pc-ic">🎁</span>
+        <span class="pc-txt"><span class="pc-t">Free PDF: Tai Chi Walking</span><span class="pc-s">Click here to download</span></span>
+        <span class="pc-dl">⬇</span></a>
+
       <a class="home-settings" href="#/guides"><span class="hs-ic">✦</span><span class="hs-txt"><b>Premium Guides</b><small>Your unlocked &amp; available guides</small></span><span class="hs-ch">›</span></a>
-      <a class="home-settings" href="#/profile"><span class="hs-ic">⚙️</span><span class="hs-txt"><b>Settings</b><small>Profile, units, palette &amp; more</small></span><span class="hs-ch">›</span></a>`;
+      <a class="home-settings" href="#/profile"><span class="hs-ic">⚙️</span><span class="hs-txt"><b>Settings</b><small>Profile, units, palette &amp; more</small></span><span class="hs-ch">›</span></a>
+      </div>`;
     view.querySelector(".hero-card").onclick = () => location.hash = "#/workout/" + hero.id;
-    view.querySelectorAll("[data-mact]").forEach(b => b.onclick = async (e) => {
-      e.preventDefault();
-      const today = PLAN.isoDate(new Date()), slot = b.dataset.slot, status = b.dataset.mact === "done" ? "done" : "skipped";
-      const it = _week.items[today + "|" + slot]; if (it) it.status = status;
-      await DB.setPlanStatus(today, slot, status); vHome();
-    });
   }
 
   function walkDay(w) { return DATA.workouts.filter(x => x.cat === "Tai Chi Walking").findIndex(x => x.id === w.id) + 1; }
