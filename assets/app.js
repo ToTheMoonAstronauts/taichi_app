@@ -1371,6 +1371,7 @@
     const prog = await DB.lessonProgress(); const taskDone = !!prog[id]?.task;
     if (_n !== _nav) return;
     view.innerHTML = `<button class="backlink" onclick="location.hash='#/academy'">‹ Academy</button>
+      ${l.cover_seed && /^https?:/.test(l.cover_seed) ? `<img class="lesson-cover" src="${l.cover_seed}" alt="">` : ""}
       <div class="lesson-eyebrow">Day ${l.day_number} · ${esc(ACADEMY_SECTIONS[l.week_number-1] || "")}</div>
       <h1 class="page" style="font-size:26px;margin-top:2px">${esc(l.title)}</h1>
       ${l.excerpt ? `<p class="lesson-lead">${esc(l.excerpt)}</p>` : ""}
