@@ -166,6 +166,13 @@ h1.page{font-family:var(--serif);font-size:29px;font-weight:600;letter-spacing:-
 .tgt-row{display:flex;align-items:center;justify-content:space-between;margin-top:14px;font-size:15px;color:var(--ink-soft)}
 .tgt-row .tgt-lbl b{color:var(--ink);font-weight:700}
 .tgt-row .tgt-edit{color:var(--primary-dark);font-weight:700;font-size:13px;cursor:pointer;text-decoration:underline}
+.tapsel{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 4px}
+.tapsel button{border:2px solid var(--line);background:#fff;border-radius:12px;cursor:pointer;font-size:22px;padding:8px;min-width:48px;height:48px;display:grid;place-items:center;color:var(--ink)}
+.tapsel.nums button{font-size:17px;font-weight:800}
+.tapsel button.on{border-color:var(--primary);background:var(--primary-soft);color:var(--primary-dark)}
+.tapsel.glasses button{filter:grayscale(1);opacity:.45}
+.tapsel.glasses button.on{filter:none;opacity:1;background:var(--primary-soft);border-color:var(--primary)}
+.hnum.active-fast{background:#eefc79}
 .moodrow{display:flex;gap:10px;justify-content:space-between;margin:10px 0}
 .moodrow button{flex:1;border:2px solid var(--line);background:#fff;border-radius:12px;padding:12px 0;font-size:24px;cursor:pointer}
 .moodrow button.on{border-color:var(--primary);background:var(--primary-soft)}
@@ -422,7 +429,7 @@ h1.page{font-family:var(--serif);font-size:29px;font-weight:600;letter-spacing:-
 /* Academy lesson article */
 .lesson-cover,.academy-hero{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:14px;margin:12px 0 16px;box-shadow:var(--shadow);display:block}
 .academy-hero{margin:2px 0 16px}
-@media (min-width:769px){ .lesson-wrap, .academy-wrap{max-width:800px} .lesson-cover,.academy-hero{aspect-ratio:auto;height:320px} }
+@media (min-width:769px){ .lesson-wrap, .academy-wrap{max-width:800px} .lesson-cover{aspect-ratio:auto;height:360px} .academy-hero{aspect-ratio:auto;height:320px} }
 .lesson-eyebrow{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--primary);font-weight:700;margin:6px 0 2px}
 .lesson-lead{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--ink-soft);line-height:1.5;margin:0 0 16px}
 .article{color:var(--ink-soft);line-height:1.7}

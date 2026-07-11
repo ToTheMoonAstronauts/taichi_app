@@ -277,7 +277,7 @@
       <div class="greet"><div class="day">${new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}</div>
         <h2>Good day, ${esc(name)}</h2><p>A little movement today goes a long way.</p></div>
 
-      <div class="hero-card" data-go="${hero.id}"><img src="assets/hero/${1 + Math.floor(Math.random() * 15)}.jpg" alt=""><div class="veil"></div>
+      <div class="hero-card" data-go="${hero.id}"><img src="assets/hero/${[1,2,3,4,5,7,8,9,11,12,13,14,15][Math.floor(Math.random()*13)]}.jpg" alt=""><div class="veil"></div>
         <div class="meta"><div class="pills"><span>${heroPill}</span><span>${hero.min} min · ${hero.level}</span></div>
           <div class="title">${esc(hero.title)}</div>
           <button class="hero-start">▶ Start today's session</button></div></div>
@@ -288,7 +288,7 @@
         <a class="hnum" href="#/track/water"><div><div class="hn-k">Water</div><div class="hn-v">${ST.latest.water??0} <small>glasses</small></div></div><span class="hn-go">Log</span></a>
         <a class="hnum" href="#/track/balance"><div><div class="hn-k">Balance</div><div class="hn-v">${ST.latest.balance??"—"} <small>/10</small></div></div><span class="hn-go">Log</span></a>
         <a class="hnum" href="#/track/mood"><div><div class="hn-k">Mood</div><div class="hn-v" style="font-size:15px;font-weight:600;color:var(--muted)">${mi>=0?(MOOD_EMO[mi]+(si>=0?" "+STRESS_EMO[si]:"")):"Log"}</div></div><span class="hn-go">Log</span></a>
-        <a class="hnum" href="#/track/fasting"><div><div class="hn-k">Fasting</div><div class="hn-v" style="font-size:15px;font-weight:600;color:var(--muted)">${fastSub}</div></div><span class="hn-go">Open</span></a>
+        <a class="hnum${activeFast ? " active-fast" : ""}" href="#/track/fasting"><div><div class="hn-k">Fasting</div><div class="hn-v" style="font-size:15px;font-weight:600;color:var(--muted)">${fastSub}</div></div><span class="hn-go">Open</span></a>
       </div>
 
       <div class="hsec">Today's meals</div>
@@ -981,7 +981,12 @@
     const toDisp = kg => imp ? Math.round(kg * 2.20462 * 10) / 10 : Math.round(kg * 10) / 10;
     const toKg = d => imp ? d / 2.20462 : d;
     const inpUnit = isWeight ? wUnit : t.unit;
-    const input = t.numeric
+    const tapMetric = metric === "water" || metric === "balance";
+    const input = metric === "water"
+      ? `<div class="tapsel glasses" id="tapsel">${Array.from({length:8},(_,i)=>`<button data-v="${i+1}" aria-label="${i+1} glasses">💧</button>`).join("")}</div>`
+      : metric === "balance"
+      ? `<div class="tapsel nums" id="tapsel">${Array.from({length:10},(_,i)=>`<button data-v="${i+1}">${i+1}</button>`).join("")}</div>`
+      : t.numeric
       ? `<div class="logger"><input id="val" type="number" inputmode="decimal" placeholder="Enter ${t.label.toLowerCase()} (${inpUnit})"></div>`
       : `<div class="moodrow">${["😟","😕","😐","🙂","😄"].map((m,i)=>`<button data-mood="${i+1}">${m}</button>`).join("")}</div>`;
     const hist = ST.history[metric] || [];
@@ -998,12 +1003,19 @@
       <div class="hist">${hist.length?hist.map(h=>`<div class="h"><span>${isWeight ? toDisp(parseFloat(h.value)) + " " + wUnit : esc(String(h.value)) + " " + (t.unit||"")}</span><span style="color:var(--muted)">${new Date(h.at).toLocaleString()}</span></div>`).join(""):'<p class="page-sub">No entries yet.</p>'}</div>`;
     let mood = null;
     view.querySelectorAll(".moodrow button").forEach(b => b.onclick = () => { mood = +b.dataset.mood; view.querySelectorAll(".moodrow button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); });
+    let tapVal = null;
+    view.querySelectorAll(".tapsel button").forEach(b => b.onclick = () => {
+      tapVal = +b.dataset.v;
+      const glasses = view.querySelector(".tapsel").classList.contains("glasses");
+      view.querySelectorAll(".tapsel button").forEach(x => x.classList.toggle("on", glasses ? (+x.dataset.v <= tapVal) : (x === b)));
+    });
     const _te = view.querySelector("#tgtEdit");
     if (_te) _te.onclick = () => { const i = view.querySelector("#tgt"); i.hidden = false; i.focus(); const r = view.querySelector("#tgtRow"); if (r) r.style.display = "none"; };
     view.querySelector("#save").onclick = async () => {
-      let v = t.numeric ? view.querySelector("#val").value : mood;
-      if (t.numeric) { if (!(parseFloat(v) >= 0)) { view.querySelector("#val").focus(); return; } }
-      else { if (!v) return; v = ["Very low","Low","Okay","Good","Great"][v-1]; }
+      let v;
+      if (tapMetric) { if (!(tapVal >= 1)) return; v = tapVal; }
+      else if (t.numeric) { v = view.querySelector("#val").value; if (!(parseFloat(v) >= 0)) { view.querySelector("#val").focus(); return; } }
+      else { v = mood; if (!v) return; v = ["Very low","Low","Okay","Good","Great"][v-1]; }
       if (isWeight) { const tg = parseFloat(view.querySelector("#tgt").value); if (tg > 0) { const tgKg = Math.round(toKg(tg) * 10) / 10; await DB.updateProfile({ target_weight_kg: tgKg }); if (PROFILE) PROFILE.target_weight_kg = tgKg; } }
       let storeVal = v;
       if (isWeight) storeVal = Math.round(toKg(parseFloat(v)) * 10) / 10;
@@ -1360,7 +1372,8 @@
       return `<div class="section-title" style="margin:22px 0 10px"><h2>${esc(ACADEMY_SECTIONS[wk-1] || ("Section " + wk))}</h2><span style="color:var(--muted);font-weight:700">${secDone}/${items.length}</span></div>
         <div class="card listcard">${rows}</div>`;
     }).join("");
-    view.innerHTML = `<div class="academy-wrap"><img class="academy-hero" src="assets/tai_chi_academy.jpg" alt=""><h1 class="page">Academy</h1><p class="page-sub">A 50-day journey — one gentle lesson a day, across five themes.</p>
+    const _acHero = _acadCat === "all" ? "assets/tai_chi_academy.jpg" : "assets/academy-" + ({"1":"foundations","2":"balance","3":"mobility","4":"calm","5":"aging"}[_acadCat] || "all") + ".jpg";
+    view.innerHTML = `<div class="academy-wrap"><img class="academy-hero" src="${_acHero}" alt=""><h1 class="page">Academy</h1><p class="page-sub">A 50-day journey — one gentle lesson a day, across five themes.</p>
       <div class="card"><div class="section-title" style="margin:0 0 8px"><h2>Your progress</h2><span style="color:var(--muted);font-weight:700">${doneCount} of ${lessons.length}</span></div>
         <div class="pbar" style="margin-bottom:0"><i style="width:${pct}%"></i></div></div>
       <div style="margin-top:16px">${chips}</div>
