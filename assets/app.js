@@ -277,7 +277,7 @@
       <div class="greet"><div class="day">${new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}</div>
         <h2>Good day, ${esc(name)}</h2><p>A little movement today goes a long way.</p></div>
 
-      <div class="hero-card" data-go="${hero.id}"><img src="assets/chair_hero.jpg" alt=""><div class="veil"></div>
+      <div class="hero-card" data-go="${hero.id}"><img src="assets/hero/${1 + Math.floor(Math.random() * 15)}.jpg" alt=""><div class="veil"></div>
         <div class="meta"><div class="pills"><span>${heroPill}</span><span>${hero.min} min · ${hero.level}</span></div>
           <div class="title">${esc(hero.title)}</div>
           <button class="hero-start">▶ Start today's session</button></div></div>
