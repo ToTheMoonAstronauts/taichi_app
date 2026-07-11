@@ -310,15 +310,16 @@
   }
 
   function walkDay(w) { return DATA.workouts.filter(x => x.cat === "Tai Chi Walking").findIndex(x => x.id === w.id) + 1; }
+  function dayNum(w) { return DATA.workouts.filter(x => x.cat === w.cat).findIndex(x => x.id === w.id) + 1; }
   function wcard(w) {
     const fav = !!ST.favorites[w.id];
     const isWalk = w.cat === "Tai Chi Walking";
     const walkImg = /^(https?:|assets\/)/.test(w.seed || "");
     const src = (isWalk && walkImg) ? w.seed : img(w.seed, 400, 260);
-    const title = isWalk ? `Day ${walkDay(w)}` : esc(w.title);
-    const meta = isWalk ? `${esc(w.title)} · ${w.min} min` : `${w.min} min · ${esc(w.focus || "")}`;
+    const title = esc(w.title);
+    const meta = `${w.min} min${w.focus ? ` · ${esc(w.focus)}` : ""}`;
     return `<div class="wcard${isWalk ? " walk" : ""}" data-id="${w.id}" ${w.locked ? 'data-locked="1"' : ""}>
-      <div class="thumb"><img src="${src}" alt=""><span class="b badge ${lv(w.level)}">${w.level}</span>
+      <div class="thumb"><img src="${src}" alt=""><span class="daybadge">Day ${dayNum(w)}</span><span class="b badge ${lv(w.level)}">${w.level}</span>
       ${w.locked ? `<div class="lock">🔒<span>${esc(w.locked)}</span></div>` : `<button class="fav" data-id="${w.id}">${fav ? "♥" : "♡"}</button>`}</div>
       <div class="body"><div class="t">${title}</div><div class="m">${meta}</div></div></div>`;
   }

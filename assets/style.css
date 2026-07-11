@@ -131,7 +131,8 @@ h1.page{font-family:var(--serif);font-size:29px;font-weight:600;letter-spacing:-
 .wcard{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;cursor:pointer;position:relative}
 .wcard .thumb{position:relative;aspect-ratio:3/2;background:var(--line)}
 .wcard .thumb img{width:100%;height:100%;object-fit:cover}
-.wcard .thumb .b{position:absolute;top:10px;left:10px}
+.wcard .thumb .b{position:absolute;bottom:10px;left:10px}
+.wcard .thumb .daybadge{position:absolute;top:10px;left:10px;background:#465A61;color:#fff;font-size:12px;font-weight:700;letter-spacing:.02em;padding:4px 10px;border-radius:20px;box-shadow:0 1px 3px rgba(0,0,0,.25)}
 .wcard .thumb .fav{position:absolute;top:8px;right:10px;font-size:20px;background:none;border:none;cursor:pointer;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}
 .wcard .thumb .lock{position:absolute;inset:0;background:rgba(20,25,22,.55);color:#fff;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:6px;text-align:center;padding:14px;font-size:13px;font-weight:600}
@@ -311,8 +312,8 @@ h1.page{font-family:var(--serif);font-size:29px;font-weight:600;letter-spacing:-
 .mc-actions button+button{border-left:1px solid var(--line)}
 .mc-actions button:hover{background:var(--primary-soft,var(--primary-soft))}
 .mc-state{padding:12px;text-align:center;font-weight:700;font-size:14px;border-top:1px solid var(--line);cursor:pointer}
-.mc-state.done{background:var(--primary-soft,var(--primary-soft));color:var(--primary-dark,var(--primary-dark))}
-.mc-state.skip{background:var(--surf);color:var(--muted,#6b7a70)}
+.mc-state.done{background:#639B69;color:#fff}
+.mc-state.skip{background:#639B69;color:#fff}
 .mc-desc{font-size:13px;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .recipe-desc{font-size:15px;color:var(--ink-soft);margin:14px 2px 4px;line-height:1.45}
 
@@ -361,7 +362,7 @@ h1.page{font-family:var(--serif);font-size:29px;font-weight:600;letter-spacing:-
 .daychip .dnum{font-size:19px;font-weight:800;line-height:1}
 .daychip .dct{font-size:11px;color:var(--muted)}
 .daychip.today{border-color:var(--primary,var(--primary))}
-.daychip.on{background:var(--primary-soft,var(--primary-soft));border-color:var(--primary,var(--primary))}
+.daychip.on{background:#eefc79;border-color:#d3e35a}
 .daychip.on .dct{color:var(--primary-dark,var(--primary-dark));font-weight:700}
 .subtabs{display:flex;background:var(--card,var(--surf));border-radius:12px;padding:4px;margin:6px 0 14px}
 .subtabs button{flex:1;border:none;background:none;padding:9px;border-radius:9px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer}
