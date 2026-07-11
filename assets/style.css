@@ -418,7 +418,7 @@ h1.page{font-family:var(--serif);font-size:29px;font-weight:600;letter-spacing:-
 
 /* Academy lesson article */
 .lesson-cover{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:14px;margin:12px 0 16px;box-shadow:var(--shadow);display:block}
-@media (min-width:769px){ .lesson-wrap, .academy-wrap{max-width:800px} }
+@media (min-width:769px){ .lesson-wrap, .academy-wrap{max-width:800px} .lesson-cover{aspect-ratio:auto;height:320px} }
 .lesson-eyebrow{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--primary);font-weight:700;margin:6px 0 2px}
 .lesson-lead{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--ink-soft);line-height:1.5;margin:0 0 16px}
 .article{color:var(--ink-soft);line-height:1.7}
