@@ -40,9 +40,9 @@ a{color:inherit}
 .nav a .ic{font-size:18px;width:22px;text-align:center}
 .nav a:hover{background:var(--bg)}
 .nav a.active{background:var(--primary-soft);color:var(--primary-dark)}
-.sidebar .account{margin-top:auto;border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;align-items:stretch;gap:2px}
-.sidebar .account .acct-email{padding:2px 14px 6px;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sidebar .account .acct-set{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;color:var(--ink);text-decoration:none;font-weight:600;font-size:16px}
+.sidebar .account{margin-top:auto;display:flex;flex-direction:column;align-items:stretch;gap:2px}
+.sidebar .account .acct-email{padding:2px 14px 10px;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar .account .acct-set{display:flex;align-items:center;gap:12px;padding:12px 14px;border-top:1px solid var(--line);border-radius:12px;color:var(--ink);text-decoration:none;font-weight:600;font-size:16px}
 .sidebar .account .acct-set .ic{font-size:18px;width:22px;text-align:center}
 .sidebar .account .acct-set:hover{background:var(--bg)}
 .sidebar .account .acct-set.active{background:var(--primary-soft);color:var(--primary-dark)}
