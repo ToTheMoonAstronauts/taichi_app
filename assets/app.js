@@ -1356,7 +1356,7 @@
       return `<div class="section-title" style="margin:22px 0 10px"><h2>${esc(ACADEMY_SECTIONS[wk-1] || ("Section " + wk))}</h2><span style="color:var(--muted);font-weight:700">${secDone}/${items.length}</span></div>
         <div class="card listcard">${rows}</div>`;
     }).join("");
-    view.innerHTML = `<div class="academy-wrap"><h1 class="page">Academy</h1><p class="page-sub">A 50-day journey — one gentle lesson a day, across five themes.</p>
+    view.innerHTML = `<div class="academy-wrap"><img class="academy-hero" src="assets/tai_chi_academy.jpg" alt=""><h1 class="page">Academy</h1><p class="page-sub">A 50-day journey — one gentle lesson a day, across five themes.</p>
       <div class="card"><div class="section-title" style="margin:0 0 8px"><h2>Your progress</h2><span style="color:var(--muted);font-weight:700">${doneCount} of ${lessons.length}</span></div>
         <div class="pbar" style="margin-bottom:0"><i style="width:${pct}%"></i></div></div>
       <div style="margin-top:16px">${chips}</div>
