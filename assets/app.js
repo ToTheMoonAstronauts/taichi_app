@@ -1318,7 +1318,7 @@
   let _lessons = null;
   const ACADEMY_SECTIONS = ["Foundations & the Daily Habit", "Steady & Strong: Balance", "Move Freely: Joints & Mobility", "Calm Mind, Clear Focus", "Aging Well: Everyday Habits"];
   const ACADEMY_CHIPS = ["Foundations", "Balance", "Mobility", "Calm & Focus", "Aging Well"];
-  const ACADEMY_UNLOCK_ALL = false;  // sequential: 1 lesson unlocks per day
+  const ACADEMY_UNLOCK_ALL = true;  // TEMP (devBob): unlocked for lesson-image review — revert to false before prod
   let _acadCat = "all";
   function renderArticle(body) {
     let html = "", inList = false;
