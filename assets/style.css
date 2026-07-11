@@ -66,7 +66,7 @@ h1.page{font-family:var(--serif);font-size:29px;font-weight:600;letter-spacing:-
 .badge.beg{background:#e7f3ea;color:#3f7a52}.badge.int{background:#fdeccf;color:#9a6b16}.badge.adv{background:#fbe0e0;color:#b23b3b}
 
 /* greeting */
-.greet{background:linear-gradient(120deg,var(--primary-soft),var(--surf));border-radius:var(--radius);padding:22px 24px;margin-bottom:18px}
+.greet{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px 24px;margin-bottom:18px}
 .greet .day{font-size:12px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;font-weight:700}
 .greet h2{font-family:var(--serif);font-weight:600;font-size:28px;letter-spacing:-.5px;margin:4px 0 2px}
 .greet p{margin:0;color:var(--muted)}
