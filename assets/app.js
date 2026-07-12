@@ -528,7 +528,14 @@
     function wireMarkDone(btn) {
       if (!btn) return;
       btn.onclick = async () => {
-        if (hasVideo) { played.clear(); _sessionRunning = true; if (wacc) wacc.classList.add("playing"); btn.textContent = "▶ Playing session…"; playMove(0); }
+        if (hasVideo) {
+          played.clear(); _sessionRunning = true; if (wacc) wacc.classList.add("playing"); btn.textContent = "▶ Playing session…";
+          // Unlock every video within this tap so later moves can auto-play (browsers block
+          // programmatic play() that fires from a timer, outside the user gesture). Prime each
+          // upcoming video with a silent play→pause; move 0 is started normally by playMove.
+          view.querySelectorAll("video").forEach((v, k) => { if (k === 0) return; try { v.muted = true; const p = v.play(); if (p && p.then) p.then(() => { v.pause(); try { v.currentTime = 0; } catch (e) {} v.muted = false; }).catch(() => { v.muted = false; }); } catch (e) {} });
+          playMove(0);
+        }
         else {                                           // perMove: button only shows when complete → start over
           steps.forEach((_, i) => delete sd()[i]);
           try { await DB.clearSteps(id); } catch (e) {}
