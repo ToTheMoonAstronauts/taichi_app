@@ -453,7 +453,7 @@
       clearInterim(); _sessionRunning = false; if (wacc) wacc.classList.remove("playing");
       view.querySelectorAll("video").forEach(v => v.pause());
       const btn = view.querySelector("#markDone"); if (btn) btn.textContent = "✓ Completed — do it again";
-      if (!ST.completed[id]) { ST.completed[id] = true; try { await DB.toggleSession(id, true); } catch (e) {} }
+      if (!ST.completed[id]) { ST.completed[id] = true; try { await DB.toggleSession(id, true); } catch (e) {} try { if (window.TM) TM.track("workout_complete", { id: id, cat: w.cat, title: w.title }); } catch (e) {} }
     };
     const showInterim = (i) => {
       clearInterim();
@@ -484,7 +484,7 @@
     // ---- per-move completion (photo / walking sessions) ----
     const syncDay = async () => {
       const all = nDone() >= steps.length;
-      if (all && !ST.completed[id]) { ST.completed[id] = true; try { await DB.toggleSession(id, true); } catch (e) {} }
+      if (all && !ST.completed[id]) { ST.completed[id] = true; try { await DB.toggleSession(id, true); } catch (e) {} try { if (window.TM) TM.track("workout_complete", { id: id, cat: w.cat, title: w.title }); } catch (e) {} }
       else if (!all && ST.completed[id]) { delete ST.completed[id]; try { await DB.toggleSession(id, false); } catch (e) {} }
     };
     const refreshProg = () => {
@@ -1441,7 +1441,7 @@
         <button class="btn block" id="finish" style="margin-top:14px">${prog[id]?.done ? "✓ Completed" : "Mark lesson complete"}</button></div></div>`;
     let done = taskDone;
     view.querySelector("#task").onclick = () => { done = !done; const t = view.querySelector("#task"); t.classList.toggle("done", done); t.querySelector(".box").textContent = done ? "✓" : ""; };
-    view.querySelector("#finish").onclick = async () => { await DB.completeLesson(id, done); view.querySelector("#finish").textContent = "✓ Completed"; };
+    view.querySelector("#finish").onclick = async () => { await DB.completeLesson(id, done); try { if (window.TM) TM.track("lesson_complete", { id: id, day: l.day_number }); } catch (e) {} view.querySelector("#finish").textContent = "✓ Completed"; };
   }
 
   // ---------- Challenges ----------
@@ -1503,6 +1503,7 @@
     const _iv = document.getElementById("interim"); if (_iv) _iv.remove();
     _sessionRunning = false;
     const [r, a] = (location.hash.replace(/^#\//, "") || "home").split("/");
+    try { if (window.TM) TM.track("screen_view", { view: r || "home", sub: a || null }); } catch (e) {}
     const navMap = { workout: "exercises", track: "tracking", profile: "", subscription: "", install: "",
       lesson: "academy", challenge: "challenges", recipe: "meals" };
     renderNav(r in navMap ? navMap[r] : r);
@@ -1523,6 +1524,7 @@
     const session = await AUTH.session();
     if (!session) { _booted = false; _uid = null; return renderAuth(); }
     _uid = session.user.id; _booted = true;
+    try { if (window.TM) { TM.identify(_uid); TM.track("app_open", {}); } } catch (e) {}
     PROFILE = await DB.profile();
     if (!DB.hasAccess(PROFILE)) return renderGate();
     [DATA, ST] = await Promise.all([DB.loadContent(), DB.loadUserState()]);
