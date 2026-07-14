@@ -34,6 +34,7 @@
     { name: "Tai Chi Walking (free)", pdf: BASE + "/assets/tai-chi-walking.pdf", html: "https://taimotion.com/walking-guide" },
     { name: "Tai Chi Walking \u2014 v2 (7-day)", pdf: BASE + "/assets/tai-chi-walking2.pdf", html: BASE + "/guides/walking2.html" },
     { name: "Free Walking \u2014 email download landing page", pdf: "https://taimotion.com/assets/tai-chi-walking2.pdf", html: "https://taimotion.com/free-walking-guide" },
+    { name: "Chair Tai Chi \u2014 5-video demo page", pdf: "", html: "https://taimotion.com/chair-demo" },
     { name: "Joint & Mobility", pdf: BASE + "/assets/guide-joint-mobility.pdf", html: BASE + "/guides/joint-mobility.html" },
     { name: "Stress-Relief Breathing", pdf: BASE + "/assets/guide-breathing.pdf", html: BASE + "/guides/breathing.html" },
     { name: "Weekly Gentle Nutrition", pdf: BASE + "/assets/guide-nutrition.pdf", html: BASE + "/guides/nutrition.html" },
@@ -44,7 +45,7 @@
   ];
   document.getElementById("list").innerHTML = GUIDES.map(function (g) {
     return '<div class="g"><h2>' + g.name + '</h2><div class="links">'
-      + '<a class="pdf" href="' + g.pdf + '" target="_blank" rel="noopener">PDF &#8599;</a>'
+      + (g.pdf ? '<a class="pdf" href="' + g.pdf + '" target="_blank" rel="noopener">PDF &#8599;</a>' : '')
       + '<a href="' + g.html + '" target="_blank" rel="noopener">HTML &#8599;</a>'
       + '</div></div>';
   }).join("");
