@@ -1220,7 +1220,7 @@
     const p = PROFILE || {};
     const units = p.measurement_system || "metric";
     const impU = units === "imperial";
-    const isBrown = (window.TM ? TM.get() : (document.documentElement.getAttribute("data-theme") || "green")) !== "green";
+    const isBrown = ((window.TM && TM.get) ? TM.get() : (document.documentElement.getAttribute("data-theme") || "green")) !== "green";
     let hFt = "", hIn = "";
     if (impU && p.height_cm) { const ti = Math.round(p.height_cm / 2.54); hFt = Math.floor(ti / 12); hIn = ti % 12; }
     view.innerHTML = `
@@ -1294,7 +1294,7 @@
     const tgl = view.querySelector("#pf-theme");
     if (tgl) tgl.onclick = () => {
       const next = tgl.classList.contains("on") ? "green" : "brown";
-      if (window.TM) TM.set(next);
+      if (window.TM && TM.set) TM.set(next);
       const on = next === "brown";
       tgl.classList.toggle("on", on); tgl.setAttribute("aria-checked", on);
     };

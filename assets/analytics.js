@@ -44,5 +44,7 @@
     try { window.posthog.init(POSTHOG_KEY, { api_host: POSTHOG_HOST, ui_host: POSTHOG_UI, defaults: "2026-05-30", person_profiles: "identified_only", capture_pageview: false, disable_session_recording: true }); } catch (e) {}
   }
 
-  window.TM = { track: track, identify: identify, sid: sid };
+  // Merge into any existing TM (e.g. the theme manager from config.js) rather than
+  // overwriting it — otherwise TM.get/TM.set (theme) would be wiped and Profile breaks.
+  window.TM = Object.assign(window.TM || {}, { track: track, identify: identify, sid: sid });
 })();
