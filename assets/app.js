@@ -7,6 +7,15 @@
   const el = (h) => { const d = document.createElement("div"); d.innerHTML = h; return d; };
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const lv = (l) => l === "Master" ? "mas" : l === "Advanced" ? "adv" : l === "Intermediate" ? "int" : "beg";
+  // Split a raw move description into numbered logical steps (setup → breath → action),
+  // folding short trailing "Relax/Hold/Repeat…" sentences into the previous step.
+  const descSteps = (desc) => {
+    const parts = (String(desc).match(/[^.!?]+[.!?]+/g) || [String(desc)]).map(s => s.trim()).filter(Boolean);
+    const merge = /^(relax|hold|repeat|engage|maintain|focus|stay|keep|feel|breathe|complete|switch|reverse)\b/i;
+    const steps = [];
+    parts.forEach(p => { if (steps.length && (merge.test(p) || p.length < 46)) steps[steps.length - 1] += " " + p; else steps.push(p); });
+    return `<ol class="wacc-steps">${steps.map(s => `<li>${esc(s)}</li>`).join("")}</ol>`;
+  };
   const img = (seed, w, h) => {
     if (/^https?:/.test(seed)) {
       // Supabase Storage objects: serve a resized/compressed (WebP when supported) variant
@@ -401,7 +410,7 @@
       const isDone = !!sd()[i];
       let body;
       if (s.video) {
-        body = `<div class="wacc-video"><video controls playsinline preload="metadata"><source src="${s.video}" type="video/mp4"></video></div>${s.desc ? `<p class="wacc-desc below">${esc(s.desc)}</p>` : ""}<div class="wacc-foot"><button class="wacc-skip" data-i="${i}">Skip this move ⏭</button></div>`;
+        body = `<div class="wacc-video"><video controls playsinline preload="metadata"><source src="${s.video}" type="video/mp4"></video></div>${s.desc ? descSteps(s.desc) : ""}<div class="wacc-foot"><button class="wacc-skip" data-i="${i}">Skip this move ⏭</button></div>`;
       } else {
         const how = Array.isArray(s.how) && s.how.length
           ? `<div class="wacc-how"><div class="wacc-how-h">How to do it</div>${s.how.map(p => `<div class="wacc-step"><b>${esc(p[0])}</b> — ${esc(p[1])}</div>`).join("")}</div>`
