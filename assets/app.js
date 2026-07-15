@@ -343,7 +343,7 @@
     ov.innerHTML = `<div class="mm-in"><button class="mm-x" aria-label="Close">✕</button>
       <video class="mm-vid" src="${MASTER_VID}" poster="${MASTER_POSTER}" controls playsinline autoplay></video></div>`;
     document.body.appendChild(ov);
-    const close = () => { const v = ov.querySelector("video"); if (v) v.pause(); ov.remove(); };
+    const close = () => { const v = ov.querySelector("video"); if (v) v.pause(); ov.remove(); if (location.hash.indexOf("#/exercises") === 0) vExercises("workouts"); };
     ov.addEventListener("click", (e) => { if (e.target === ov) close(); });
     ov.querySelector(".mm-x").onclick = close;
   }
@@ -384,17 +384,20 @@
         }).join("")}`;
     }
     let masterSeen = null; try { masterSeen = localStorage.getItem("tm_master_seen"); } catch (e) {}
-    const masterBlock = tab === "workouts" ? `
-      <button class="master-btn" id="masterBtn"><span class="mb-ic">👋</span><span class="mb-tx">Meet your instructor — <b>Master Zhou&nbsp;Mei</b></span><span class="mb-play">▶</span></button>
-      ${masterSeen ? "" : `<div class="master-card" id="masterCard">
-          <button class="mc-x" id="masterX" aria-label="Dismiss">✕</button>
-          <div class="mc-poster" id="masterPlay"><img src="${MASTER_POSTER}" alt="Master Zhou Mei"><span class="mc-playbtn">▶</span></div>
-          <div class="mc-cap">A warm welcome from <b>Master Zhou Mei</b> — press play 🌿</div>
-        </div>`}` : "";
+    // First visit: show the welcome card ONLY. Once seen/closed: show the compact button instead.
+    const masterBlock = tab === "workouts"
+      ? (masterSeen
+          ? `<button class="master-btn" id="masterBtn"><span class="mb-ic">👋</span><span class="mb-tx">Meet your instructor — <b>Master Zhou&nbsp;Mei</b></span><span class="mb-play">▶</span></button>`
+          : `<div class="master-card" id="masterCard">
+              <button class="mc-x" id="masterX" aria-label="Dismiss">✕</button>
+              <div class="mc-poster" id="masterPlay"><img src="${MASTER_POSTER}" alt="Master Zhou Mei"><span class="mc-playbtn">▶</span></div>
+              <div class="mc-cap">A warm welcome from <b>Master Zhou Mei</b> — press play 🌿</div>
+            </div>`)
+      : "";
     view.innerHTML = `<h1 class="page">Exercises</h1>${tabs}${masterBlock}${body}`;
     { const mb = view.querySelector("#masterBtn"); if (mb) mb.onclick = openMaster;
       const mp = view.querySelector("#masterPlay"); if (mp) mp.onclick = openMaster;
-      const mx = view.querySelector("#masterX"); if (mx) mx.onclick = () => { markMasterSeen(); const c = view.querySelector("#masterCard"); if (c) c.remove(); }; }
+      const mx = view.querySelector("#masterX"); if (mx) mx.onclick = () => { markMasterSeen(); vExercises("workouts"); }; }
     view.querySelectorAll(".tabs button").forEach(b => b.onclick = () => location.hash = "#/exercises/" + b.dataset.t);
     view.querySelectorAll(".filters button").forEach(b => b.onclick = () => { sessionStorage.setItem("exfilter", b.dataset.c); vExercises("workouts"); });
     view.querySelectorAll(".see-all").forEach(a => a.onclick = () => { sessionStorage.setItem("exfilter", a.dataset.see); vExercises("workouts"); window.scrollTo(0, 0); });
