@@ -343,7 +343,7 @@
     ov.innerHTML = `<div class="mm-in"><button class="mm-x" aria-label="Close">✕</button>
       <video class="mm-vid" src="${MASTER_VID}" poster="${MASTER_POSTER}" controls playsinline preload="metadata"></video></div>`;
     document.body.appendChild(ov);
-    const close = () => { const v = ov.querySelector("video"); if (v) v.pause(); ov.remove(); if (location.hash.indexOf("#/exercises") === 0) vExercises("workouts"); };
+    const close = () => { const v = ov.querySelector("video"); if (v) v.pause(); ov.remove(); };
     ov.addEventListener("click", (e) => { if (e.target === ov) close(); });
     ov.querySelector(".mm-x").onclick = close;
   }
@@ -395,8 +395,17 @@
             </div>`)
       : "";
     view.innerHTML = `<h1 class="page">Exercises</h1>${tabs}${masterBlock}${body}`;
-    { const mb = view.querySelector("#masterBtn"); if (mb) mb.onclick = openMaster;
-      const mp = view.querySelector("#masterPlay"); if (mp) mp.onclick = openMaster;
+    { const mb = view.querySelector("#masterBtn"); if (mb) mb.onclick = openMaster;   // repeat launches → lightbox
+      const mp = view.querySelector("#masterPlay"); if (mp) mp.onclick = () => {       // first-view card → play inline in the frame
+        markMasterSeen();
+        try { if (window.TM) TM.track("master_video_play", { inline: true }); } catch (e) {}
+        const card = view.querySelector("#masterCard"); if (!card) return;
+        const cap = card.querySelector(".mc-cap"); if (cap) cap.remove();
+        const vid = document.createElement("video");
+        vid.className = "mc-inline"; vid.src = MASTER_VID; vid.poster = MASTER_POSTER; vid.controls = true; vid.setAttribute("playsinline", "");
+        mp.replaceWith(vid);
+        const pr = vid.play(); if (pr && pr.catch) pr.catch(() => {});
+      };
       const mx = view.querySelector("#masterX"); if (mx) mx.onclick = () => { markMasterSeen(); vExercises("workouts"); }; }
     view.querySelectorAll(".tabs button").forEach(b => b.onclick = () => location.hash = "#/exercises/" + b.dataset.t);
     view.querySelectorAll(".filters button").forEach(b => b.onclick = () => { sessionStorage.setItem("exfilter", b.dataset.c); vExercises("workouts"); });
