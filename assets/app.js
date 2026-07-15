@@ -368,11 +368,11 @@
     view.querySelectorAll(".plan-item[data-go]").forEach(c => c.onclick = () => location.hash = "#/workout/" + c.dataset.go);
   }
 
-  function vWorkout(id) {
+  function vWorkout(id, moveIdx) {
     const w = DATA.workouts.find(x => x.id === id); if (!w) return notFound();
     const done = !!ST.completed[id], fav = !!ST.favorites[id];
     const steps = w.steps || [];
-    if (steps.some(s => s.video || s.img)) return vAccWorkout(w, id, done, fav, steps);
+    if (steps.some(s => s.video || s.img)) return vAccWorkout(w, id, done, fav, steps, moveIdx);
     const stepsHtml = steps.length ? `<div class="section-title"><h2>Workouts</h2><span style="color:var(--muted);font-weight:700">${steps.length}</span></div>
       <div class="card listcard">${steps.map((s, i) => `<div class="lrow"><span class="lnum">${String(i+1).padStart(2,"0")}</span>
         <span class="ltext"><span class="lt">${esc(s.t)}</span><span class="ls"><span class="badge ${lv(s.lvl)}">${esc(s.lvl||"Beginner")}</span> · ${s.min||""} min</span></span><span class="chev">›</span></div>`).join("")}</div>` : "";
@@ -388,7 +388,8 @@
     view.querySelector("#favBtn").onclick = async () => { const on = !ST.favorites[id]; if (on) ST.favorites[id] = true; else delete ST.favorites[id]; await DB.toggleFav(id, on); vWorkout(id); };
   }
 
-  function vAccWorkout(w, id, done, fav, steps) {
+  function vAccWorkout(w, id, done, fav, steps, moveIdx) {
+    const openIdx = (() => { const n = parseInt(moveIdx, 10); return (Number.isInteger(n) && n >= 0 && n < steps.length) ? n : 0; })();
     const isWalk = w.cat === "Tai Chi Walking";
     const hasVideo = steps.some(s => s.video);
     const perMove = !hasVideo;                       // photo/walking sessions: close each move one-by-one
@@ -411,7 +412,7 @@
           <button class="wacc-done${isDone ? " is-done" : ""}" data-i="${i}">${isDone ? "✓ Done — tap to undo" : "Mark as done"}</button>`;
       }
       const meta = s.dose ? esc(s.dose) : (s.min ? `${s.min} min` : "");
-      return `<div class="wacc-item${isDone ? " done" : ""}${i === 0 ? " open" : ""}" data-item="${i}">
+      return `<div class="wacc-item${isDone ? " done" : ""}${i === openIdx ? " open" : ""}" data-item="${i}">
         <button class="wacc-head" data-i="${i}">
           <span class="lnum">${isDone ? "✓" : String(i + 1).padStart(2, "0")}</span>
           <span class="ltext"><span class="lt">${esc(s.t)}</span><span class="ls"><span class="badge ${lv(s.lvl)}">${esc(s.lvl || "Beginner")}</span>${meta ? ` · ${meta}` : ""}</span></span>
@@ -437,6 +438,7 @@
     _sessionRunning = false;
     const wacc = view.querySelector("#wacc");
     const els = () => view.querySelectorAll(".wacc-item");
+    if (openIdx > 0) { const _t = view.querySelector('.wacc-item[data-item="' + openIdx + '"]'); if (_t) requestAnimationFrame(() => requestAnimationFrame(() => _t.scrollIntoView({ behavior: "smooth", block: "start" }))); }
     const played = new Set();
     const clearInterim = () => { if (_interimTimer) { clearInterval(_interimTimer); _interimTimer = null; } const el = document.getElementById("interim"); if (el) el.remove(); };
     const nextUnplayed = () => { for (let k = 0; k < steps.length; k++) if (!played.has(k)) return k; return -1; };
@@ -1502,14 +1504,14 @@
     if (_interimTimer) { clearInterval(_interimTimer); _interimTimer = null; }
     const _iv = document.getElementById("interim"); if (_iv) _iv.remove();
     _sessionRunning = false;
-    const [r, a] = (location.hash.replace(/^#\//, "") || "home").split("/");
+    const [r, a, a2] = (location.hash.replace(/^#\//, "") || "home").split("/");
     try { if (window.TM) TM.track("screen_view", { view: r || "home", sub: a || null }); } catch (e) {}
     const navMap = { workout: "exercises", track: "tracking", profile: "", subscription: "", install: "",
       lesson: "academy", challenge: "challenges", recipe: "meals" };
     renderNav(r in navMap ? navMap[r] : r);
     window.scrollTo(0, 0);
     ({ home: vHome, meals: () => vMeals(a), recipe: () => vRecipe(a),
-       exercises: () => vExercises(a), workout: () => vWorkout(a), tracking: vTracking,
+       exercises: () => vExercises(a), workout: () => vWorkout(a, a2), tracking: vTracking,
        track: () => vTrack(a), stress: () => vStress(a), favorites: vFavorites,
        profile: vProfile, subscription: vManageSub, install: vInstall,
        academy: vAcademy, lesson: () => vLesson(a),
