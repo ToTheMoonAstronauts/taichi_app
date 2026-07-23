@@ -579,6 +579,7 @@
       btn.onclick = async () => {
         if (hasVideo) {
           played.clear(); _sessionRunning = true; if (wacc) wacc.classList.add("playing"); btn.textContent = "▶ Playing session…";
+          try { if (window.TM) TM.track("workout_start", { id: id, cat: w.cat, title: w.title, moves: steps.length }); } catch (e) {}
           // Unlock every video within this tap so later moves can auto-play (browsers block
           // programmatic play() that fires from a timer, outside the user gesture). Prime each
           // upcoming video with a silent play→pause; move 0 is started normally by playMove.
@@ -1573,7 +1574,7 @@
     const session = await AUTH.session();
     if (!session) { _booted = false; _uid = null; return renderAuth(); }
     _uid = session.user.id; _booted = true;
-    try { if (window.TM) { TM.identify(_uid); TM.track("app_open", {}); } } catch (e) {}
+    try { if (window.TM) { TM.identify(_uid, session.user.email); TM.track("app_open", {}); } } catch (e) {}
     PROFILE = await DB.profile();
     if (!DB.hasAccess(PROFILE)) return renderGate();
     [DATA, ST] = await Promise.all([DB.loadContent(), DB.loadUserState()]);

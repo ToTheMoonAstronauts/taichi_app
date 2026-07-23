@@ -5,9 +5,9 @@
  */
 (function () {
   var URL = "https://pixtozeghxwiidpnloih.supabase.co";
-  var POSTHOG_KEY = "phc_qCr9WZ2RgZmQ6VpPmxUQ74jF3NERcDxi34nYEyduBMkm";
-  var POSTHOG_HOST = "https://t.myphotoalive.com";
-  var POSTHOG_UI = "https://eu.posthog.com";
+  var POSTHOG_KEY = "phc_zP7yVawcZX3iQ3qRfhbvxHxz87wnDnizc66yax7bT83i"; // Monokodas org, US cloud ("Tai Motion" project 525048)
+  var POSTHOG_HOST = "https://us.i.posthog.com"; // no reverse proxy for the US project yet
+  var POSTHOG_UI = "https://us.posthog.com";
 
   function sid() {
     try {
@@ -34,9 +34,11 @@
     try { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: "tm_" + event, tm_props: row.props }); } catch (e) {}
     try { if (window.posthog && window.posthog.capture) window.posthog.capture(event, props || {}); } catch (e) {}
   }
-  function identify(userId) {
-    if (!userId) return; window.__tm_uid = userId;
-    try { if (window.posthog && window.posthog.identify) window.posthog.identify(userId); } catch (e) {}
+  function identify(userId, email) {
+    if (!userId) return; window.__tm_uid = userId; // log-event rows keep the supabase uid
+    // PostHog distinct id is the lowercased email — the funnel identifies the same way at
+    // quiz email capture, so pre-purchase and in-app activity merge into one person.
+    try { if (window.posthog && window.posthog.identify) window.posthog.identify(String(email || userId).toLowerCase(), { email: email || null, supabase_uid: userId }); } catch (e) {}
   }
 
   if (POSTHOG_KEY) {
