@@ -8,9 +8,9 @@
     s=s.replace(/\b(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b/g,function(_,d){return DAYS[d];});
     s=s.replace(/\b(\d{1,2}) (January|February|March|April|May|June|July|August|September|October|November|December)\b/g,function(_,d,m){return d+' de '+MON[m];});
     s=s.replace(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\b/g,function(_,m){return MON[m];});
+    s=s.replace(/\b(Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\b/g,function(_,m){var A={Jan:'ene',Feb:'feb',Mar:'mar',Apr:'abr',Jun:'jun',Jul:'jul',Aug:'ago',Sep:'sep',Sept:'sept',Oct:'oct',Nov:'nov',Dec:'dic'};return A[m];});
     s=s.replace(/\b(Sun|Mon|Tue|Wed|Thu|Fri|Sat)\b/g,function(_,m){var W={Sun:'Dom',Mon:'Lun',Tue:'Mar',Wed:'Mié',Thu:'Jue',Fri:'Vie',Sat:'Sáb'};return W[m];});
     s=s.replace(/(\d+) items across (\d+) days/g,'$1 artículos en $2 días');
-    s=s.replace(/\b(Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\b/g,function(_,m){var A={Jan:'ene',Feb:'feb',Mar:'mar',Apr:'abr',Jun:'jun',Jul:'jul',Aug:'ago',Sep:'sep',Sept:'sept',Oct:'oct',Nov:'nov',Dec:'dic'};return A[m];});
     s=s.replace(/\b(\d+) of (\d+)\b/g,'$1 de $2');
     s=s.replace(/\bStart (\d+)h fast\b/g,'Iniciar ayuno de $1h');
     s=s.replace(/\bof (\d+h)\b/g,'de $1');
@@ -54,7 +54,7 @@
     document.addEventListener('DOMContentLoaded',injectLangCard); setTimeout(injectLangCard,600); return;
   }
   document.documentElement.lang='es';
-  try{fetch('/assets/recipes-es.json?v=1').then(function(r){return r.json();}).then(function(rc){for(var k in rc){if(!D[k])D[k]=rc[k];}swap();}).catch(function(){});}catch(e){}
+  try{fetch('/assets/recipes-es.json?v=2').then(function(r){return r.json();}).then(function(rc){for(var k in rc){if(!D[k])D[k]=rc[k];}swap();}).catch(function(){});}catch(e){}
   function swap(){try{
     var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null),n;
     while(n=w.nextNode()){var v=n.nodeValue,k=v.trim(),nv;
