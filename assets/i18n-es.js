@@ -28,7 +28,7 @@
     if(document.getElementById('tm-lang-card')) return;
     var card=null, labels=document.querySelectorAll('.sec-label');
     for(var i=0;i<labels.length;i++){var t=labels[i].textContent.trim().toUpperCase();
-      if(t.indexOf('APPEARANCE')>=0||t.indexOf('APARIENCIA')>=0){card=labels[i].closest('.card');break;}}
+      if(t.indexOf('APPEARANCE')>=0||t.indexOf('APARIENCIA')>=0||t.indexOf('ASPECTO')>=0){card=labels[i].closest('.card');break;}}
     if(!card||!card.parentNode) return;
     var c=document.createElement('div'); c.className='card'; c.id='tm-lang-card'; c.style.marginTop='16px';
     c.innerHTML='<div class="sec-label">'+(ES?'IDIOMA':'LANGUAGE')+'</div>'+
