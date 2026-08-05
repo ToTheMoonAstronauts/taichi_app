@@ -9,45 +9,57 @@
   :root { --green:#2f6b45; --line:#e2eee7; --muted:#6b7d70; }
   * { box-sizing: border-box; }
   body { font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:#1f3a24; margin:0; padding:32px 20px 60px; background:#f4f8f5; }
-  .wrap { max-width: 760px; margin: 0 auto; }
+  .wrap { max-width: 880px; margin: 0 auto; }
   h1 { font-size: 22px; margin: 0 0 4px; }
   .note { color: var(--muted); font-size: 13px; margin: 0 0 24px; }
   .g { background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:12px; }
-  .g h2 { font-size: 16px; margin: 0 0 8px; }
-  .g .links { display:flex; flex-wrap:wrap; gap:8px; }
-  .g a { display:inline-flex; align-items:center; gap:6px; text-decoration:none; font-size:14px; font-weight:600;
+  .g h2 { font-size: 16px; margin: 0 0 10px; }
+  .cols { display:flex; gap:24px; flex-wrap:wrap; }
+  .col { flex:1; min-width:220px; }
+  .col .lang { font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:0 0 6px; }
+  .links { display:flex; flex-wrap:wrap; gap:8px; }
+  .links a { display:inline-flex; align-items:center; gap:6px; text-decoration:none; font-size:14px; font-weight:600;
          padding:7px 12px; border-radius:20px; border:1px solid var(--line); color:var(--green); background:#f3faf6; }
-  .g a.pdf { color:#b23b2e; background:#fdf1ef; border-color:#f0dccb; }
+  .links a.pdf { color:#b23b2e; background:#fdf1ef; border-color:#f0dccb; }
+  .links .none { font-size:13px; color:#b9c4bd; padding:7px 0; }
   .foot { color: var(--muted); font-size: 12px; margin-top: 20px; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>Guide links &mdash; internal</h1>
-  <p class="note">All guides, unlocked, regardless of purchase. Not linked from anywhere. For testing only.</p>
+  <p class="note">All guides, unlocked, regardless of purchase. Not linked from anywhere. For testing only. &middot; ES = Spanish localization (PDF links appear once the Spanish PDFs are generated).</p>
   <div id="list"></div>
   <p class="foot">PDF links open the file directly &middot; HTML links open the illustrated web version.</p>
 </div>
 <script>
   var BASE = "https://app.taimotion.com";
+  var FUN = "https://taimotion.com";
+  // es_html / es_pdf = Spanish localization ("" = not yet localized / PDF not yet generated)
   var GUIDES = [
-    { name: "Tai Chi Walking (free)", pdf: BASE + "/assets/tai-chi-walking.pdf", html: "https://taimotion.com/walking-guide" },
-    { name: "Tai Chi Walking \u2014 v2 (7-day)", pdf: BASE + "/assets/tai-chi-walking2.pdf", html: BASE + "/guides/walking2.html" },
-    { name: "Free Walking \u2014 email download landing page", pdf: "https://taimotion.com/assets/tai-chi-walking2.pdf", html: "https://taimotion.com/free-walking-guide" },
-    { name: "Chair Tai Chi \u2014 5-video demo page", pdf: "", html: "https://taimotion.com/chair-demo" },
-    { name: "Chair Tai Chi \u2014 10-video follow-along guide", pdf: "", html: "https://taimotion.com/chair-videos" },
-    { name: "Joint & Mobility", pdf: BASE + "/assets/guide-joint-mobility.pdf", html: BASE + "/guides/joint-mobility.html" },
-    { name: "Stress-Relief Breathing", pdf: BASE + "/assets/guide-breathing.pdf", html: BASE + "/guides/breathing.html" },
-    { name: "Weekly Gentle Nutrition", pdf: BASE + "/assets/guide-nutrition.pdf", html: BASE + "/guides/nutrition.html" },
-    { name: "Sweet & Gentle: 25 Lighter Desserts", pdf: BASE + "/assets/guide-desserts.pdf", html: BASE + "/guides/desserts.html" },
-    { name: "Better Sleep", pdf: BASE + "/assets/guide-sleep.pdf", html: BASE + "/guides/sleep.html" },
-    { name: "Eating Without Guilt", pdf: BASE + "/assets/guide-eating.pdf", html: BASE + "/guides/eating.html" },
-    { name: "Aging Gracefully", pdf: BASE + "/assets/guide-aging.pdf", html: BASE + "/guides/aging.html" }
+    { name: "Tai Chi Walking (free)", pdf: BASE + "/assets/tai-chi-walking.pdf", html: FUN + "/walking-guide", es_pdf: "", es_html: "" },
+    { name: "Tai Chi Walking — v2 (7-day)", pdf: BASE + "/assets/tai-chi-walking2.pdf", html: BASE + "/guides/walking2.html", es_pdf: "", es_html: BASE + "/guides/es/walking2.html" },
+    { name: "Free Walking — email download landing page", pdf: FUN + "/assets/tai-chi-walking2.pdf", html: FUN + "/free-walking-guide", es_pdf: "", es_html: "" },
+    { name: "Chair Tai Chi — 5-video demo page", pdf: "", html: FUN + "/chair-demo", es_pdf: "", es_html: "" },
+    { name: "Chair Tai Chi — 10-video follow-along guide", pdf: "", html: FUN + "/chair-videos", es_pdf: "", es_html: "" },
+    { name: "Free Chair Tai Chi guide — landing page", pdf: "", html: FUN + "/free-chair-guide", es_pdf: "", es_html: FUN + "/es/free-chair-guide" },
+    { name: "Joint & Mobility", pdf: BASE + "/assets/guide-joint-mobility.pdf", html: BASE + "/guides/joint-mobility.html", es_pdf: "", es_html: BASE + "/guides/es/joint-mobility.html" },
+    { name: "Stress-Relief Breathing", pdf: BASE + "/assets/guide-breathing.pdf", html: BASE + "/guides/breathing.html", es_pdf: "", es_html: BASE + "/guides/es/breathing.html" },
+    { name: "Weekly Gentle Nutrition", pdf: BASE + "/assets/guide-nutrition.pdf", html: BASE + "/guides/nutrition.html", es_pdf: "", es_html: BASE + "/guides/es/nutrition.html" },
+    { name: "Sweet & Gentle: 25 Lighter Desserts", pdf: BASE + "/assets/guide-desserts.pdf", html: BASE + "/guides/desserts.html", es_pdf: "", es_html: BASE + "/guides/es/desserts.html" },
+    { name: "Better Sleep", pdf: BASE + "/assets/guide-sleep.pdf", html: BASE + "/guides/sleep.html", es_pdf: "", es_html: BASE + "/guides/es/sleep.html" },
+    { name: "Eating Without Guilt", pdf: BASE + "/assets/guide-eating.pdf", html: BASE + "/guides/eating.html", es_pdf: "", es_html: BASE + "/guides/es/eating.html" },
+    { name: "Aging Gracefully", pdf: BASE + "/assets/guide-aging.pdf", html: BASE + "/guides/aging.html", es_pdf: "", es_html: BASE + "/guides/es/aging.html" }
   ];
+  function linkSet(pdf, html) {
+    if (!pdf && !html) return '<span class="none">&mdash;</span>';
+    return (pdf ? '<a class="pdf" href="' + pdf + '" target="_blank" rel="noopener">PDF &#8599;</a>' : '')
+         + (html ? '<a href="' + html + '" target="_blank" rel="noopener">HTML &#8599;</a>' : '');
+  }
   document.getElementById("list").innerHTML = GUIDES.map(function (g) {
-    return '<div class="g"><h2>' + g.name + '</h2><div class="links">'
-      + (g.pdf ? '<a class="pdf" href="' + g.pdf + '" target="_blank" rel="noopener">PDF &#8599;</a>' : '')
-      + '<a href="' + g.html + '" target="_blank" rel="noopener">HTML &#8599;</a>'
+    return '<div class="g"><h2>' + g.name + '</h2><div class="cols">'
+      + '<div class="col"><div class="lang">English</div><div class="links">' + linkSet(g.pdf, g.html) + '</div></div>'
+      + '<div class="col"><div class="lang">Español (ES)</div><div class="links">' + linkSet(g.es_pdf, g.es_html) + '</div></div>'
       + '</div></div>';
   }).join("");
 </script>
