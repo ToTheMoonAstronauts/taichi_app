@@ -8,6 +8,9 @@
     s=s.replace(/\b(\d{1,2}) (January|February|March|April|May|June|July|August|September|October|November|December)\b/g,function(_,d,m){return d+' de '+MON[m];});
     s=s.replace(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\b/g,function(_,m){return MON[m];});
     s=s.replace(/\b(\d+) of (\d+)\b/g,'$1 de $2');
+    s=s.replace(/\b(Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\b/g,function(_,m){var A={Jan:'ene',Feb:'feb',Mar:'mar',Apr:'abr',Jun:'jun',Jul:'jul',Aug:'ago',Sep:'sep',Sept:'sept',Oct:'oct',Nov:'nov',Dec:'dic'};return A[m];});
+    s=s.replace(/\bStart (\d+)h fast\b/g,'Iniciar ayuno de $1h');
+    s=s.replace(/\bof (\d+h)\b/g,'de $1');
     s=s.replace(/(?<!-)\bDay (\d+)\b/g,'Día $1');
     return s;
   }
