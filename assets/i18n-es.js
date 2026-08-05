@@ -54,7 +54,7 @@
     document.addEventListener('DOMContentLoaded',injectLangCard); setTimeout(injectLangCard,600); return;
   }
   document.documentElement.lang='es';
-  try{fetch('/assets/recipes-es.json?v=5').then(function(r){return r.json();}).then(function(rc){for(var k in rc){if(!D[k])D[k]=rc[k];}swap();}).catch(function(){});}catch(e){}
+  try{fetch('/assets/recipes-es.json?v=6').then(function(r){return r.json();}).then(function(rc){for(var k in rc){if(!D[k])D[k]=rc[k];}swap();}).catch(function(){});}catch(e){}
   function swap(){try{
     var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null),n;
     while(n=w.nextNode()){var v=n.nodeValue,k=v.trim(),nv;
