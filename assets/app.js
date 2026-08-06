@@ -912,7 +912,7 @@
             const r = await fetch(SUPA.url + "/functions/v1/send-groceries", {
               method: "POST",
               headers: { "Content-Type": "application/json", "Authorization": "Bearer " + (session ? session.access_token : ""), "apikey": SUPA.key },
-              body: JSON.stringify({ to: v, days: _grocDays.size, items }),
+              body: JSON.stringify({ to: v, days: _grocDays.size, items, locale: (window.TM_LOCALE || "en") }),
             });
             const j = await r.json().catch(() => ({}));
             if (r.ok && j.ok) { msg.textContent = "✓ Sent! Check " + v; msg.style.color = "var(--primary-dark)"; }
