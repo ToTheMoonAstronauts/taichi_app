@@ -6,62 +6,140 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Guide links (internal)</title>
 <style>
-  :root { --green:#2f6b45; --line:#e2eee7; --muted:#6b7d70; }
+  :root { --green:#2f6b45; --accent:#45b577; --line:#e2eee7; --muted:#6b7d70; --ink:#1f3a24; }
   * { box-sizing: border-box; }
-  body { font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:#1f3a24; margin:0; padding:32px 20px 60px; background:#f4f8f5; }
-  .wrap { max-width: 880px; margin: 0 auto; }
+  body { font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:var(--ink); margin:0; padding:32px 20px 60px; background:#f4f8f5; }
+  .wrap { max-width: 920px; margin: 0 auto; }
   h1 { font-size: 22px; margin: 0 0 4px; }
-  .note { color: var(--muted); font-size: 13px; margin: 0 0 24px; }
-  .g { background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:12px; }
-  .g h2 { font-size: 16px; margin: 0 0 10px; }
-  .cols { display:flex; gap:24px; flex-wrap:wrap; }
-  .col { flex:1; min-width:220px; }
-  .col .lang { font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:0 0 6px; }
+  .note { color: var(--muted); font-size: 13px; margin: 0 0 6px; }
+  .who { color: var(--muted); font-size: 12px; margin: 0 0 20px; }
+  .who a { color: var(--green); cursor:pointer; }
+  /* table */
+  table { width:100%; border-collapse:separate; border-spacing:0; background:#fff; border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+  thead th { text-align:left; font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); background:#eef6f1; padding:12px 16px; border-bottom:1px solid var(--line); }
+  tbody td { padding:14px 16px; border-bottom:1px solid var(--line); vertical-align:top; font-size:14px; }
+  tbody tr:last-child td { border-bottom:none; }
+  tbody tr:hover { background:#f8fcfa; }
+  .t-title { font-weight:600; color:var(--ink); }
+  .t-type { color:var(--muted); font-size:13px; white-space:nowrap; }
   .links { display:flex; flex-wrap:wrap; gap:8px; }
-  .links a { display:inline-flex; align-items:center; gap:6px; text-decoration:none; font-size:14px; font-weight:600;
-         padding:7px 12px; border-radius:20px; border:1px solid var(--line); color:var(--green); background:#f3faf6; }
+  .links a { display:inline-flex; align-items:center; gap:5px; text-decoration:none; font-size:13px; font-weight:600;
+             padding:6px 11px; border-radius:20px; border:1px solid var(--line); color:var(--green); background:#f3faf6; white-space:nowrap; }
   .links a.pdf { color:#b23b2e; background:#fdf1ef; border-color:#f0dccb; }
-  .links .none { font-size:13px; color:#b9c4bd; padding:7px 0; }
-  .foot { color: var(--muted); font-size: 12px; margin-top: 20px; }
+  .foot { color: var(--muted); font-size: 12px; margin-top: 18px; }
+  /* gate */
+  .gate { max-width:400px; margin:8vh auto 0; background:#fff; border:1px solid var(--line); border-radius:16px; padding:30px 26px; text-align:center; }
+  .gate h2 { font-size:20px; margin:0 0 6px; }
+  .gate p { color:var(--muted); font-size:14px; margin:0 0 18px; }
+  .gate input { width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:10px; font-size:15px; margin-bottom:10px; }
+  .gate button { width:100%; padding:13px; border:none; border-radius:10px; background:var(--accent); color:#fff; font-weight:700; font-size:15px; cursor:pointer; }
+  .gate .msg { font-size:13px; color:var(--muted); margin-top:12px; min-height:18px; }
+  .hidden { display:none; }
+  @media(max-width:560px){ .t-type{white-space:normal} thead th:nth-child(2),td:nth-child(2){display:none} }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div class="wrap">
-  <h1>Guide links &mdash; internal</h1>
-  <p class="note">All guides, unlocked, regardless of purchase. Not linked from anywhere. For testing only. &middot; ES = Spanish localization (PDF links appear once the Spanish PDFs are generated).</p>
-  <div id="list"></div>
-  <p class="foot">PDF links open the file directly &middot; HTML links open the illustrated web version.</p>
+  <!-- GATE (shown when not signed in / not authorized) -->
+  <div id="gate" class="gate hidden">
+    <h2 id="gate-h">Restricted</h2>
+    <p id="gate-p">This page is for the team. Sign in with your email.</p>
+    <div id="gate-form">
+      <input id="gate-email" type="email" placeholder="you@email.com" autocomplete="email">
+      <button id="gate-send">Send magic link</button>
+    </div>
+    <div id="gate-msg" class="msg"></div>
+  </div>
+
+  <!-- CONTENT (shown when authorized) -->
+  <div id="content" class="hidden">
+    <h1>Guide links &mdash; internal</h1>
+    <p class="note">All guides &amp; landing pages, unlocked. Not linked from anywhere &middot; for the team only.</p>
+    <p class="who" id="who"></p>
+    <table>
+      <thead><tr><th>Title</th><th>Type</th><th>Links</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <p class="foot">Newest first &middot; PDF opens the file, Page opens the web version.</p>
+  </div>
 </div>
 <script>
-  var BASE = "https://app.taimotion.com";
-  var FUN = "https://taimotion.com";
-  // es_html / es_pdf = Spanish localization ("" = not yet localized / PDF not yet generated)
+  var APP = "https://app.taimotion.com", SITE = "https://taimotion.com";
+  // Newest first
   var GUIDES = [
-    { name: "Tai Chi Walking (free)", pdf: BASE + "/assets/tai-chi-walking.pdf", html: FUN + "/walking-guide", es_pdf: "", es_html: "" },
-    { name: "Tai Chi Walking — v2 (7-day)", pdf: BASE + "/assets/tai-chi-walking2.pdf", html: BASE + "/guides/walking2.html", es_pdf: BASE + "/assets/tai-chi-walking2-es.pdf", es_html: BASE + "/guides/es/walking2.html" },
-    { name: "Free Walking — email download landing page", pdf: FUN + "/assets/tai-chi-walking2.pdf", html: FUN + "/free-walking-guide", es_pdf: "", es_html: "" },
-    { name: "Chair Tai Chi — 5-video demo page", pdf: "", html: FUN + "/chair-demo", es_pdf: "", es_html: "" },
-    { name: "Chair Tai Chi — 10-video follow-along guide", pdf: "", html: FUN + "/chair-videos", es_pdf: "", es_html: "" },
-    { name: "Free Chair Tai Chi guide — landing page + PDF", pdf: FUN + "/assets/chair-guide.pdf", html: FUN + "/free-chair-guide", es_pdf: FUN + "/assets/chair-guide-es.pdf", es_html: FUN + "/es/free-chair-guide" },
-    { name: "Joint & Mobility", pdf: BASE + "/assets/guide-joint-mobility.pdf", html: BASE + "/guides/joint-mobility.html", es_pdf: BASE + "/assets/guide-joint-mobility-es.pdf", es_html: BASE + "/guides/es/joint-mobility.html" },
-    { name: "Stress-Relief Breathing", pdf: BASE + "/assets/guide-breathing.pdf", html: BASE + "/guides/breathing.html", es_pdf: BASE + "/assets/guide-breathing-es.pdf", es_html: BASE + "/guides/es/breathing.html" },
-    { name: "Weekly Gentle Nutrition", pdf: BASE + "/assets/guide-nutrition.pdf", html: BASE + "/guides/nutrition.html", es_pdf: BASE + "/assets/guide-nutrition-es.pdf", es_html: BASE + "/guides/es/nutrition.html" },
-    { name: "Sweet & Gentle: 25 Lighter Desserts", pdf: BASE + "/assets/guide-desserts.pdf", html: BASE + "/guides/desserts.html", es_pdf: BASE + "/assets/guide-desserts-es.pdf", es_html: BASE + "/guides/es/desserts.html" },
-    { name: "Better Sleep", pdf: BASE + "/assets/guide-sleep.pdf", html: BASE + "/guides/sleep.html", es_pdf: BASE + "/assets/guide-sleep-es.pdf", es_html: BASE + "/guides/es/sleep.html" },
-    { name: "Eating Without Guilt", pdf: BASE + "/assets/guide-eating.pdf", html: BASE + "/guides/eating.html", es_pdf: BASE + "/assets/guide-eating-es.pdf", es_html: BASE + "/guides/es/eating.html" },
-    { name: "Aging Gracefully", pdf: BASE + "/assets/guide-aging.pdf", html: BASE + "/guides/aging.html", es_pdf: BASE + "/assets/guide-aging-es.pdf", es_html: BASE + "/guides/es/aging.html" }
+    { name: "10 Chair Exercises — visual guide", type: "Free lead-magnet PDF + page", pdf: SITE + "/assets/chair-guide.pdf", html: SITE + "/chair-guide", es_pdf: SITE + "/assets/chair-guide-es.pdf", es_html: SITE + "/es/chair-guide" },
+    { name: "Chair Tai Chi — 10-video follow-along", type: "Landing page (video demos)", pdf: "", html: SITE + "/chair-videos" },
+    { name: "Chair Tai Chi — 5-video demo", type: "Landing page (video demo)", pdf: "", html: SITE + "/chair-demo" },
+    { name: "Free Walking — email download page", type: "Landing page (free PDF via email)", pdf: SITE + "/assets/tai-chi-walking2.pdf", html: SITE + "/free-walking-guide" },
+    { name: "Aging Gracefully", type: "Upsell PDF", pdf: APP + "/assets/guide-aging.pdf", html: APP + "/guides/aging.html", es_pdf: APP + "/assets/guide-aging-es.pdf", es_html: APP + "/guides/es/aging.html" },
+    { name: "Eating Without Guilt", type: "Upsell PDF", pdf: APP + "/assets/guide-eating.pdf", html: APP + "/guides/eating.html", es_pdf: APP + "/assets/guide-eating-es.pdf", es_html: APP + "/guides/es/eating.html" },
+    { name: "Better Sleep", type: "Upsell PDF", pdf: APP + "/assets/guide-sleep.pdf", html: APP + "/guides/sleep.html", es_pdf: APP + "/assets/guide-sleep-es.pdf", es_html: APP + "/guides/es/sleep.html" },
+    { name: "Sweet & Gentle: 25 Lighter Desserts", type: "Upsell PDF", pdf: APP + "/assets/guide-desserts.pdf", html: APP + "/guides/desserts.html", es_pdf: APP + "/assets/guide-desserts-es.pdf", es_html: APP + "/guides/es/desserts.html" },
+    { name: "Weekly Gentle Nutrition", type: "Upsell PDF", pdf: APP + "/assets/guide-nutrition.pdf", html: APP + "/guides/nutrition.html", es_pdf: APP + "/assets/guide-nutrition-es.pdf", es_html: APP + "/guides/es/nutrition.html" },
+    { name: "Stress-Relief Breathing", type: "Upsell PDF", pdf: APP + "/assets/guide-breathing.pdf", html: APP + "/guides/breathing.html", es_pdf: APP + "/assets/guide-breathing-es.pdf", es_html: APP + "/guides/es/breathing.html" },
+    { name: "Joint & Mobility", type: "Upsell PDF", pdf: APP + "/assets/guide-joint-mobility.pdf", html: APP + "/guides/joint-mobility.html", es_pdf: APP + "/assets/guide-joint-mobility-es.pdf", es_html: APP + "/guides/es/joint-mobility.html" },
+    { name: "Tai Chi Walking — v2 (7-day)", type: "In-app member PDF", pdf: APP + "/assets/tai-chi-walking2.pdf", html: APP + "/guides/walking2.html", es_pdf: APP + "/assets/tai-chi-walking2-es.pdf", es_html: APP + "/guides/es/walking2.html" },
+    { name: "Tai Chi Walking (free)", type: "Free member PDF", pdf: APP + "/assets/tai-chi-walking.pdf", html: SITE + "/walking-guide" }
   ];
-  function linkSet(pdf, html) {
-    if (!pdf && !html) return '<span class="none">&mdash;</span>';
-    return (pdf ? '<a class="pdf" href="' + pdf + '" target="_blank" rel="noopener">PDF &#8599;</a>' : '')
-         + (html ? '<a href="' + html + '" target="_blank" rel="noopener">HTML &#8599;</a>' : '');
+  var PAID_ALLOW = ["abobinas+paid1@gmail.com"];
+
+  var SB = window.supabase.createClient(
+    "https://pixtozeghxwiidpnloih.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpeHRvemVnaHh3aWlkcG5sb2loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MzgzNzgsImV4cCI6MjA5ODMxNDM3OH0.hJzlERAwXkbK8wV7R-NTcfa1YQ-TTk8R9nCM0Qdtblg",
+    { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "implicit" } }
+  );
+
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+  function show(id){ document.getElementById(id).classList.remove("hidden"); }
+  function hide(id){ document.getElementById(id).classList.add("hidden"); }
+
+  function renderTable(email){
+    document.getElementById("who").innerHTML = "Signed in as " + esc(email) + " &middot; <a id=\"logout\">sign out</a>";
+    document.getElementById("rows").innerHTML = GUIDES.map(function(g){
+      var links = ""
+        + '<a href="' + g.html + '" target="_blank" rel="noopener">Page &#8599;</a>'
+        + (g.pdf ? '<a class="pdf" href="' + g.pdf + '" target="_blank" rel="noopener">PDF &#8599;</a>' : '')
+        + (g.es_html ? '<a href="' + g.es_html + '" target="_blank" rel="noopener">ES Página &#8599;</a>' : '')
+        + (g.es_pdf ? '<a class="pdf" href="' + g.es_pdf + '" target="_blank" rel="noopener">ES PDF &#8599;</a>' : '');
+      return '<tr><td class="t-title">' + esc(g.name) + '</td>'
+           + '<td class="t-type">' + esc(g.type) + '</td>'
+           + '<td><div class="links">' + links + '</div></td></tr>';
+    }).join("");
+    document.getElementById("logout").onclick = function(){ SB.auth.signOut().then(function(){ location.reload(); }); };
+    show("content");
   }
-  document.getElementById("list").innerHTML = GUIDES.map(function (g) {
-    return '<div class="g"><h2>' + g.name + '</h2><div class="cols">'
-      + '<div class="col"><div class="lang">English</div><div class="links">' + linkSet(g.pdf, g.html) + '</div></div>'
-      + '<div class="col"><div class="lang">Español (ES)</div><div class="links">' + linkSet(g.es_pdf, g.es_html) + '</div></div>'
-      + '</div></div>';
-  }).join("");
+
+  function showGate(title, msg, canSend){
+    document.getElementById("gate-h").textContent = title;
+    document.getElementById("gate-p").textContent = msg;
+    document.getElementById("gate-form").style.display = canSend ? "block" : "none";
+    show("gate");
+  }
+
+  document.getElementById("gate-send").onclick = function(){
+    var email = document.getElementById("gate-email").value.trim();
+    var m = document.getElementById("gate-msg");
+    if(!email){ m.textContent = "Enter your email."; return; }
+    m.textContent = "Sending…";
+    SB.auth.signInWithOtp({ email: email, options: { emailRedirectTo: location.origin + location.pathname } })
+      .then(function(r){ m.textContent = r.error ? ("Error: " + r.error.message) : "Check your inbox for the magic link."; });
+  };
+
+  (async function(){
+    var s = (await SB.auth.getSession()).data.session;
+    if(!s){ showGate("Restricted", "This page is for the team. Sign in with your email.", true); return; }
+    var email = (s.user.email || "").toLowerCase();
+    var allowed = PAID_ALLOW.indexOf(email) !== -1;
+    if(!allowed){
+      try {
+        var prof = (await SB.from("users").select("subscription_plan").eq("id", s.user.id).single()).data;
+        if(prof && prof.subscription_plan === "comp") allowed = true;
+      } catch(e){}
+    }
+    if(allowed){ renderTable(email); }
+    else { showGate("Not authorized", "This account (" + email + ") doesn't have access to this page.", false); }
+  })();
 </script>
 </body>
 </html>

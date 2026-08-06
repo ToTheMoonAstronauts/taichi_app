@@ -8,3 +8,5 @@
   X-Frame-Options: SAMEORIGIN
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   Permissions-Policy: geolocation=(), microphone=(), camera=()
+  # Members-only app — keep the entire subdomain (guides, PDFs, urls) out of search engines.
+  X-Robots-Tag: noindex, nofollow
