@@ -905,7 +905,10 @@
           const inp = view.querySelector("#grocEmailInput"), msg = view.querySelector("#grocEmailMsg");
           const v = inp.value.trim();
           if (!/^\S+@\S+\.\S+$/.test(v)) { msg.textContent = "Please enter a valid email address."; msg.style.color = "var(--accent)"; inp.focus(); return; }
-          const items = buildGroceries([..._grocDays].sort()).map(g => { const f = fmtLine(g); return { amt: f.amt, name: f.name }; });
+          const _esUnits = { cups: "tazas", cup: "taza", tbsp: "cda", tsp: "cdta", cloves: "dientes", clove: "diente", slices: "rebanadas", slice: "rebanada", cans: "latas", can: "lata", handful: "puñado", pinch: "pizca", to_taste: "al gusto" };
+          const _tr = (nm) => { const d = window.TM_DICT; if (window.TM_LOCALE !== "es" || !d) return nm; return d[nm] || d[nm + "s"] || d[nm + "es"] || nm; };
+          const _trAmt = (a) => { if (window.TM_LOCALE !== "es" || !a) return a; return a.replace(/\b(cups|cup|tbsp|tsp|cloves|clove|slices|slice|cans|can|handful|pinch)\b/gi, m => _esUnits[m.toLowerCase()] || m).replace(/to taste/gi, "al gusto"); };
+          const items = buildGroceries([..._grocDays].sort()).map(g => { const f = fmtLine(g); return { amt: _trAmt(f.amt), name: _tr(f.name) }; });
           if (!items.length) { msg.textContent = "Select at least one day first."; msg.style.color = "var(--accent)"; return; }
           es.disabled = true; msg.textContent = "Sending…"; msg.style.color = "var(--muted)";
           try {

@@ -57,6 +57,7 @@
     document.addEventListener('DOMContentLoaded',injectLangCard); setTimeout(injectLangCard,600); return;
   }
   document.documentElement.lang='es';
+  try{window.TM_DICT=D;}catch(e){}  // expose merged dict so app.js can translate grocery ingredient names
   try{fetch('/assets/recipes-es.json?v=10').then(function(r){return r.json();}).then(function(rc){for(var k in rc){if(!D[k])D[k]=rc[k];}swap();}).catch(function(){});}catch(e){}
   function swap(){try{
     var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null),n;
