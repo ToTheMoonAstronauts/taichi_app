@@ -18,6 +18,9 @@
     s=s.replace(/(😟|😕|😐|🙂|😄|😌|😧|😫) ?(Very low|Very calm|Very tense|Low|Okay|Good|Great|Calm|Neutral|Tense)\b/g,function(_,e,l){return e+' '+MV[l];});
     s=s.replace(/(Ánimo: )(Very low|Low|Okay|Good|Great)\b/g,function(_,p,l){return p+MV[l];});
     s=s.replace(/(Estrés: )(Very calm|Calm|Neutral|Tense|Very tense)\b/g,function(_,p,l){return p+MV[l];});
+    s=s.replace(/ACADEMY · LESSON (\d+) OF (\d+)/g,'ACADEMIA · LECCIÓN $1 DE $2');
+    s=s.replace(/\bStart lesson (\d+)/g,'Empezar lección $1');
+    s=s.replace(/\b(Breakfast|Lunch|Dinner)\b/g,function(_,m){return {Breakfast:'Desayuno',Lunch:'Almuerzo',Dinner:'Cena'}[m];});
     return s;
   }
   function gc(n){var m=document.cookie.match('(?:^|; )'+n+'=([^;]*)');return m?decodeURIComponent(m[1]):'';}
